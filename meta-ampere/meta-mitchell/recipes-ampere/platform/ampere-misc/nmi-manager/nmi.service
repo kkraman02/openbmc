@@ -1,0 +1,6 @@
+[Unit]
+Description= Trigger NMI via PLDM service
+
+[Service]
+ExecStart=/usr/sbin/ampere_pldm_effecter_trigger.sh -s 0 NMITrigger
+Type=oneshot
