@@ -34,6 +34,7 @@ RDEPENDS:${PN}-chassis = " \
 SUMMARY:${PN}-system = "Ampere System"
 RDEPENDS:${PN}-system = " \
                          smbios-mdr \
+                         bootstrap-account \
                         "
 
 SUMMARY:${PN}-flash = "Ampere Flash"
