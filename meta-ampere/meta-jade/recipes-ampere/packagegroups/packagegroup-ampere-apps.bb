@@ -40,6 +40,7 @@ SUMMARY:${PN}-system = "Ampere System"
 RDEPENDS:${PN}-system = " \
         smbios-mdr \
         ac01-openocd \
+        bootstrap-account \
         "
 
 SUMMARY:${PN}-flash = "Ampere Flash"
