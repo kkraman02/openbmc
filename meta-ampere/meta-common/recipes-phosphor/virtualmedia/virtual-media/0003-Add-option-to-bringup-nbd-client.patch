@@ -1,0 +1,41 @@
+From 333059470aa339a4c48de504486248200d364bf1 Mon Sep 17 00:00:00 2001
+From: Quang Nguyen <quangnguyen@os.amperecomputing.com>
+Date: Mon, 18 Sep 2023 14:14:04 +0700
+Subject: [PATCH] A3SR-20631: meta-ampere: fix failure of
+ virtual media feature via Redfish
+
+Virtual media via redfish finally ends up calling nbd-client to talk
+to nbd driver in kernel. According to [1], nbd-client needs to add option "-L"
+to work with ioctl interface when update to version 3.24.
+
+This commit adds that option.
+
+Tested:
+1. Run virtual media via webUI
+2. Run virtual media via Redfish
+Ensure that they are both working properly.
+
+[1] https://github.com/openbmc/jsnbd/commit/cfa074bdc5fb6520874422ded0cd39b3a110d7fc
+
+Signed-off-by: Quang Nguyen <quangnguyen@os.amperecomputing.com>
+---
+ src/state/activating_state.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/state/activating_state.cpp b/src/state/activating_state.cpp
+index 7143545..25310b0 100644
+--- a/src/state/activating_state.cpp
++++ b/src/state/activating_state.cpp
+@@ -209,6 +209,9 @@ std::unique_ptr<resource::Process>
+         boost::algorithm::join(
+             Configuration::MountPoint::toArgs(machine.getConfig()), " ");
+ 
++    std::string opt = " -L";
++    nbdClient = nbdClient + opt;
++
+     std::vector<std::string> args = {
+         // Listen for client on this unix socket...
+         "--unix",
+-- 
+2.25.1
+
