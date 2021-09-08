@@ -1,0 +1,211 @@
+From 5643caced8efa66501ce2943b5388eed0285f310 Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Fri, 3 Mar 2023 03:04:44 +0000
+Subject: [PATCH] Revert "Implement If-Match header in Http layer"
+
+This reverts commit 2d6cb56b6b47c3fbb0d234ade5c1208edb69ef1f.
+---
+ http/http_request.hpp          | 20 +--------
+ http/http_response.hpp         | 28 +++++--------
+ http/routing.hpp               | 10 ++---
+ redfish-core/include/query.hpp | 74 ----------------------------------
+ 4 files changed, 16 insertions(+), 116 deletions(-)
+
+diff --git a/http/http_request.hpp b/http/http_request.hpp
+index d203077e..ca006d02 100644
+--- a/http/http_request.hpp
++++ b/http/http_request.hpp
+@@ -45,24 +45,8 @@ struct Request
+         }
+     }
+ 
+-    Request(const Request& other) :
+-        req(other.req), fields(req.base()), isSecure(other.isSecure),
+-        body(req.body()), ioService(other.ioService),
+-        ipAddress(other.ipAddress), session(other.session),
+-        userRole(other.userRole)
+-    {
+-        setUrlInfo();
+-    }
+-
+-    Request(Request&& other) noexcept :
+-        req(std::move(other.req)), fields(req.base()), isSecure(other.isSecure),
+-        body(req.body()), ioService(other.ioService),
+-        ipAddress(std::move(other.ipAddress)),
+-        session(std::move(other.session)), userRole(std::move(other.userRole))
+-    {
+-        setUrlInfo();
+-    }
+-
++    Request(const Request&) = delete;
++    Request(const Request&&) = delete;
+     Request& operator=(const Request&) = delete;
+     Request& operator=(const Request&&) = delete;
+     ~Request() = default;
+diff --git a/http/http_response.hpp b/http/http_response.hpp
+index f9204e4a..54ad712f 100644
+--- a/http/http_response.hpp
++++ b/http/http_response.hpp
+@@ -161,28 +161,18 @@ struct Response
+         stringResponse->body() += std::string(bodyPart);
+     }
+ 
+-    std::string computeEtag() const
+-    {
+-        // Only set etag if this request succeeded
+-        if (result() != boost::beast::http::status::ok)
+-        {
+-            return "";
+-        }
+-        // and the json response isn't empty
+-        if (jsonValue.empty())
+-        {
+-            return "";
+-        }
+-        size_t hashval = std::hash<nlohmann::json>{}(jsonValue);
+-        return "\"" + intToHexString(hashval, 8) + "\"";
+-    }
+-
+     void end()
+     {
+-        std::string etag = computeEtag();
+-        if (!etag.empty())
++        // Only set etag if this request succeeded
++        if (result() == boost::beast::http::status::ok)
+         {
+-            addHeader(boost::beast::http::field::etag, etag);
++            // and the json response isn't empty
++            if (!jsonValue.empty())
++            {
++                size_t hashval = std::hash<nlohmann::json>{}(jsonValue);
++                std::string hexVal = "\"" + intToHexString(hashval, 8) + "\"";
++                addHeader(boost::beast::http::field::etag, hexVal);
++            }
+         }
+         if (completed)
+         {
+diff --git a/http/routing.hpp b/http/routing.hpp
+index 5b3ddfe4..a6052e87 100644
+--- a/http/routing.hpp
++++ b/http/routing.hpp
+@@ -1370,12 +1370,11 @@ class Router
+             rule.handle(req, asyncResp, params);
+             return;
+         }
+-        std::string username = req.session->username;
+ 
+         crow::connections::systemBus->async_method_call(
+-            [req{std::move(req)}, asyncResp, &rule, params](
+-                const boost::system::error_code ec,
+-                const dbus::utility::DBusPropertiesMap& userInfoMap) mutable {
++            [&req, asyncResp, &rule,
++             params](const boost::system::error_code ec,
++                     const dbus::utility::DBusPropertiesMap& userInfoMap) {
+             if (ec)
+             {
+                 BMCWEB_LOG_ERROR << "GetUserInfo failed...";
+@@ -1474,7 +1473,8 @@ class Router
+             rule.handle(req, asyncResp, params);
+             },
+             "xyz.openbmc_project.User.Manager", "/xyz/openbmc_project/user",
+-            "xyz.openbmc_project.User.Manager", "GetUserInfo", username);
++            "xyz.openbmc_project.User.Manager", "GetUserInfo",
++            req.session->username);
+     }
+ 
+     void debugPrint()
+diff --git a/redfish-core/include/query.hpp b/redfish-core/include/query.hpp
+index 0fa6c188..2b92d048 100644
+--- a/redfish-core/include/query.hpp
++++ b/redfish-core/include/query.hpp
+@@ -31,75 +31,6 @@
+ 
+ namespace redfish
+ {
+-inline void
+-    afterIfMatchRequest(crow::App& app,
+-                        const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
+-                        crow::Request& req, const std::string& ifMatchHeader,
+-                        const crow::Response& resIn)
+-{
+-    std::string computedEtag = resIn.computeEtag();
+-    BMCWEB_LOG_DEBUG << "User provided if-match etag " << ifMatchHeader
+-                     << " computed etag " << computedEtag;
+-    if (computedEtag != ifMatchHeader)
+-    {
+-        messages::preconditionFailed(asyncResp->res);
+-        return;
+-    }
+-    // Restart the request without if-match
+-    req.req.erase(boost::beast::http::field::if_match);
+-    BMCWEB_LOG_DEBUG << "Restarting request";
+-    app.handle(req, asyncResp);
+-}
+-
+-inline bool handleIfMatch(crow::App& app, const crow::Request& req,
+-                          const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
+-{
+-    if (req.session == nullptr)
+-    {
+-        // If the user isn't authenticated, don't even attempt to parse match
+-        // parameters
+-        return true;
+-    }
+-
+-    std::string ifMatch{
+-        req.getHeaderValue(boost::beast::http::field::if_match)};
+-    if (ifMatch.empty())
+-    {
+-        // No If-Match header.  Nothing to do
+-        return true;
+-    }
+-    if (req.req.method() != boost::beast::http::verb::patch &&
+-        req.req.method() != boost::beast::http::verb::post &&
+-        req.req.method() != boost::beast::http::verb::delete_)
+-    {
+-        messages::preconditionFailed(asyncResp->res);
+-        return false;
+-    }
+-    boost::system::error_code ec;
+-
+-    // Try to GET the same resource
+-    crow::Request newReq({boost::beast::http::verb::get, req.url, 11}, ec);
+-
+-    if (ec)
+-    {
+-        messages::internalError(asyncResp->res);
+-        return false;
+-    }
+-
+-    // New request has the same credentials as the old request
+-    newReq.session = req.session;
+-
+-    // Construct a new response object to fill in, and check the hash of before
+-    // we modify the Resource.
+-    std::shared_ptr<bmcweb::AsyncResp> getReqAsyncResp =
+-        std::make_shared<bmcweb::AsyncResp>();
+-
+-    getReqAsyncResp->res.setCompleteRequestHandler(std::bind_front(
+-        afterIfMatchRequest, std::ref(app), asyncResp, req, ifMatch));
+-
+-    app.handle(newReq, getReqAsyncResp);
+-    return false;
+-}
+ 
+ // Sets up the Redfish Route and delegates some of the query parameter
+ // processing. |queryCapabilities| stores which query parameters will be
+@@ -133,11 +64,6 @@ inline bool handleIfMatch(crow::App& app, const crow::Request& req,
+         return false;
+     }
+ 
+-    if (!handleIfMatch(app, req, asyncResp))
+-    {
+-        return false;
+-    }
+-
+     bool needToCallHandlers = true;
+ 
+ #ifdef BMCWEB_ENABLE_REDFISH_AGGREGATION
+-- 
+2.25.1
+
