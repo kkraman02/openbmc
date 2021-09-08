@@ -1,0 +1,34 @@
+From 6aa8f1a26ee8acea573da884ef563e010983e55b Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Mon, 6 Mar 2023 06:50:33 +0000
+Subject: [PATCH] Check HostName valid on PATCH operation
+
+The HostName in EthernetInterface should be checked before PATCH
+operation. This will return an error when the HostName can not be
+patched.
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+Change-Id: I08e313f5419aa9d31d6bbfa2fd570c9349461d0d
+---
+ redfish-core/lib/ethernet.hpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/redfish-core/lib/ethernet.hpp b/redfish-core/lib/ethernet.hpp
+index 2fe4654a..65fddd3f 100644
+--- a/redfish-core/lib/ethernet.hpp
++++ b/redfish-core/lib/ethernet.hpp
+@@ -1913,6 +1913,11 @@ inline void requestEthernetInterfacesRoutes(App& app)
+ 
+             if (hostname)
+             {
++                if (!isHostnameValid(*hostname))
++                {
++                    messages::propertyValueFormatError(asyncResp->res, *hostname, "HostName");
++                    return;
++                }
+                 handleHostnamePatch(*hostname, asyncResp);
+             }
+ 
+-- 
+2.25.1
+

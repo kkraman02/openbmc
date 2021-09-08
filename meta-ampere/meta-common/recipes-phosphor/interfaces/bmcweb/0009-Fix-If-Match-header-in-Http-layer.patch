@@ -1,0 +1,31 @@
+From a7a7b818f755e88987d5b2573e07dd8968912909 Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Thu, 23 Mar 2023 07:09:06 +0000
+Subject: [PATCH] Fix If Match header in Http layer
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+---
+ redfish-core/include/query.hpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/redfish-core/include/query.hpp b/redfish-core/include/query.hpp
+index c5d537b2..963d2804 100644
+--- a/redfish-core/include/query.hpp
++++ b/redfish-core/include/query.hpp
+@@ -68,6 +68,13 @@ inline bool handleIfMatch(crow::App& app, const crow::Request& req,
+         // No If-Match header.  Nothing to do
+         return true;
+     }
++
++    if (ifMatch == "*")
++    {
++        // Representing any resource
++        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
++        return true;
++    }
+     if (req.req.method() != boost::beast::http::verb::patch &&
+         req.req.method() != boost::beast::http::verb::post &&
+         req.req.method() != boost::beast::http::verb::delete_)
+-- 
+2.25.1
+

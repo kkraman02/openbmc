@@ -1,0 +1,44 @@
+From 22ed47304d03dbf8b0e4138677d7b7686cdd8386 Mon Sep 17 00:00:00 2001
+From: Thu Nguyen <thu@os.amperecomputing.com>
+Date: Tue, 4 Apr 2023 23:42:37 +0700
+Subject: [PATCH] Correct the service and path of PowerCap D-Bus interface
+
+The powerCap service and path are changed from
+xyz.openbmc_project.Settings and
+/xyz/openbmc_project/control/host0/power_cap to
+xyz.openbmc_project.Control.power.manager and
+/xyz/openbmc_project/control/power/manager/cap.
+This causes the "Internal server error" when queries
+"redfish/v1/Chassis/chassis/Power". This commit corrects the service
+name and path of powerCap.
+
+Tested:
+1. Check "/redfish/v1/Chassis/chassis/Power"
+2. No "Internal server error"
+
+Signed-off-by: Thu Nguyen <thu@os.amperecomputing.com>
+
+%% original patch: 0013-Fix-Internal-server-error-when-querry-Chassis-Power.patch
+---
+ redfish-core/lib/power.hpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/redfish-core/lib/power.hpp b/redfish-core/lib/power.hpp
+index 5d7bbb7d..9949b01e 100644
+--- a/redfish-core/lib/power.hpp
++++ b/redfish-core/lib/power.hpp
+@@ -291,8 +291,9 @@ inline void requestRoutesPower(App& app)
+             };
+ 
+             sdbusplus::asio::getAllProperties(
+-                *crow::connections::systemBus, "xyz.openbmc_project.Settings",
+-                "/xyz/openbmc_project/control/host0/power_cap",
++                *crow::connections::systemBus,
++                "xyz.openbmc_project.Control.power.manager",
++                "/xyz/openbmc_project/control/power/manager/cap",
+                 "xyz.openbmc_project.Control.Power.Cap",
+                 std::move(valueHandler));
+         };
+-- 
+2.17.1
+
