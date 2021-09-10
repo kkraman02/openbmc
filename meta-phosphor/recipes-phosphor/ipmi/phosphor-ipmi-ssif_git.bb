@@ -7,11 +7,11 @@ DEPENDS += "phosphor-logging"
 DEPENDS += "sdbusplus"
 DEPENDS += "cli11"
 PROVIDES += "virtual/obmc-host-ipmi-hw"
-SRCREV = "4300d2104bd75e94d4a53e60423a64859e32aeef"
+SRCREV = "d2a2d41af375b88f9cb4e69cd8c5b1ea9763eb91"
 PV = "1.0+git${SRCPV}"
 PR = "r1"
 
-SRC_URI = "git://github.com/openbmc/ssifbridge.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/ampere-openbmc/ssifbridge.git;protocol=https;branch=ampere"
 
 SYSTEMD_SERVICE:${PN} = "ssifbridge.service"
 S = "${WORKDIR}/git"
