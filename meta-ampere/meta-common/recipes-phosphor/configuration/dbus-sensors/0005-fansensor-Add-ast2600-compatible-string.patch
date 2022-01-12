@@ -1,0 +1,36 @@
+From 250bf0921d00a436994e35e255d64258f8818d26 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Tue, 19 Sep 2023 11:34:15 +0700
+Subject: [PATCH 5/9] fansensor: Add ast2600 compatible string
+
+Fan in Aspeed2600 has not been supported upstream but in Aspeed-SDK
+only. The new method in dbus-sensors fansensor for getting fan type of a
+hwmon path from compatible string does not include the ast2600-tach
+string. This commit adds the string to the compatibleFanTypes list to
+make the fans in mitchell search-able by the application.
+
+Tested:
+$ busctl tree xyz.openbmc_project.FanSensor
+fan sensors are created successfully
+
+Change-Id: I7277e425f990a46a325b4203b3de43339e9fbfb3
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ src/FanMain.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/FanMain.cpp b/src/FanMain.cpp
+index 7ea8806..c161fae 100644
+--- a/src/FanMain.cpp
++++ b/src/FanMain.cpp
+@@ -66,6 +66,7 @@ std::optional<RedundancySensor> systemRedundancy;
+ static const std::map<std::string, FanTypes> compatibleFanTypes = {
+     {"aspeed,ast2400-pwm-tacho", FanTypes::aspeed},
+     {"aspeed,ast2500-pwm-tacho", FanTypes::aspeed},
++    {"aspeed,ast2600-tach", FanTypes::aspeed},
+     {"nuvoton,npcm750-pwm-fan", FanTypes::nuvoton},
+     {"nuvoton,npcm845-pwm-fan", FanTypes::nuvoton},
+     {"hpe,gxp-fan-ctrl", FanTypes::hpe}
+-- 
+2.34.1
+
