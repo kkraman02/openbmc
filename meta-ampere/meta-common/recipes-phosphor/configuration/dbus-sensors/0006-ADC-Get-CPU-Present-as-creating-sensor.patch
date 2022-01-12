@@ -1,0 +1,119 @@
+From 192339b48708b40b45b70709bc58907c6147754f Mon Sep 17 00:00:00 2001
+From: Thu Nguyen <thu@os.amperecomputing.com>
+Date: Tue, 28 Nov 2023 00:35:02 +0000
+Subject: [PATCH] ADC: Get CPU Present as creating sensor
+
+The service can check the CPU installation state through `Present`
+D-Bus property of CPU Object path as creating the ADC sensors which
+include `CPURequired` configuration, but the CPU present variables in
+ADC service is not updated.
+This will guaranty that the CPU present state in ADC service will
+always be correct although the `PropertyChanged` of CPU Present D-Bus
+property can be missed by ADC service or the CPU Present service does
+not create the PropertyChanged D-Bus signal.
+
+Tested:
+1. Stress DC the CPU, make sure the CPURequired sensors are always
+created base on the CPU installation status.
+
+Signed-off-by: Thu Nguyen <thu@os.amperecomputing.com>
+---
+ src/ADCSensorMain.cpp | 75 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
+
+diff --git a/src/ADCSensorMain.cpp b/src/ADCSensorMain.cpp
+index ccdca8f..8b60fa4 100644
+--- a/src/ADCSensorMain.cpp
++++ b/src/ADCSensorMain.cpp
+@@ -70,6 +70,73 @@ bool isAdc(const fs::path& parentPath)
+     return name == "iio_hwmon";
+ }
+ 
++static void
++    getPresentCpus(std::shared_ptr<sdbusplus::asio::connection>& dbusConnection)
++{
++    static const int depth = 2;
++    static const int numKeys = 1;
++    GetSubTreeType cpuSubTree;
++
++    try
++    {
++        auto getItems = dbusConnection->new_method_call(
++            mapper::busName, mapper::path, mapper::interface, mapper::subtree);
++        getItems.append(cpuInventoryPath, static_cast<int32_t>(depth),
++                        std::array<const char*, numKeys>{
++                            "xyz.openbmc_project.Inventory.Item"});
++        auto getItemsResp = dbusConnection->call(getItems);
++        getItemsResp.read(cpuSubTree);
++    }
++    catch (sdbusplus::exception_t& e)
++    {
++        std::cerr << "error getting inventory item subtree: " << e.what()
++                  << "\n";
++        return;
++    }
++
++    for (const auto& [path, objDict] : cpuSubTree)
++    {
++        auto obj = sdbusplus::message::object_path(path).filename();
++        boost::to_lower(obj);
++        if (!obj.starts_with("cpu") || objDict.empty())
++        {
++            continue;
++        }
++        const std::string& owner = objDict.begin()->first;
++
++        std::variant<bool> respValue;
++        try
++        {
++            auto getPresence = dbusConnection->new_method_call(
++                owner.c_str(), path.c_str(), "org.freedesktop.DBus.Properties",
++                "Get");
++            getPresence.append("xyz.openbmc_project.Inventory.Item", "Present");
++            auto resp = dbusConnection->call(getPresence);
++            resp.read(respValue);
++        }
++        catch (sdbusplus::exception_t& e)
++        {
++            std::cerr << "Error in getting CPU presence: " << e.what() << "\n";
++            continue;
++        }
++        auto* present = std::get_if<bool>(&respValue);
++        if (present != nullptr && *present)
++        {
++            int cpuIndex = 0;
++            try
++            {
++                cpuIndex = std::stoi(obj.substr(obj.size() - 1));
++            }
++            catch (const std::exception& e)
++            {
++                std::cerr << "Error converting CPU index, " << e.what() << '\n';
++                continue;
++            }
++            cpuPresence[cpuIndex] = *present;
++        }
++    }
++}
++
+ void createSensors(
+     boost::asio::io_context& io, sdbusplus::asio::object_server& objectServer,
+     boost::container::flat_map<std::string, std::shared_ptr<ADCSensor>>&
+@@ -205,6 +272,14 @@ void createSensors(
+             auto findCPU = baseConfiguration->second.find("CPURequired");
+             if (findCPU != baseConfiguration->second.end())
+             {
++                /*
++                 * CPU present is not updated.
++                 * Check the present of CPU Present DBus interface.
++                 */
++                if (cpuPresence.size() == 0)
++                {
++                    getPresentCpus(dbusConnection);
++                }
+                 size_t index = std::visit(VariantToIntVisitor(),
+                                           findCPU->second);
+                 auto presenceFind = cpuPresence.find(index);
+-- 
+2.34.1
+
