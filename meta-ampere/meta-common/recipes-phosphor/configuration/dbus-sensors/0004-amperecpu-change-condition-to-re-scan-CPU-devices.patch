@@ -1,0 +1,143 @@
+From e6c9c05c7789a94c6eebd4db5a7aca9ae9b8e591 Mon Sep 17 00:00:00 2001
+From: Quang Nguyen <quangn@amperecomputing.com>
+Date: Wed, 12 Jul 2023 15:47:02 +0700
+Subject: [PATCH 4/7] amperecpu: change condition to re-scan CPU devices
+
+Before creating CPU sensors, dbus-sensors will scan for the number of CPU
+devices. Sometimes, when BMC is rebooted, the quantity of CPU devices are
+returned 1 instead of 2 CPU devices in 2P system; and in next scan, the
+number of CPU devices are returned 2 correctly. Since the current code
+only creates sensors one time, once CPU sensors are created, dbus-sensors
+will not allow to re-create CPU sensors again. This results in the
+S1 sensors are always missing on dbus in this case
+
+This patch fixes this issue.
+
+Tested:
+1. Reboot BMC 200 times, do not see issue happens
+
+Change-Id: I32b45c4d63a3b12e692df456cd0b05b1c9369103
+Signed-off-by: Quang Nguyen <quangn@amperecomputing.com>
+---
+ src/AmpereCPUMain.cpp | 84 +++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 77 insertions(+), 7 deletions(-)
+
+diff --git a/src/AmpereCPUMain.cpp b/src/AmpereCPUMain.cpp
+index fd894f4..846d11e 100644
+--- a/src/AmpereCPUMain.cpp
++++ b/src/AmpereCPUMain.cpp
+@@ -34,6 +34,7 @@
+ #include <utility>
+ #include <variant>
+ #include <vector>
++#include <map>
+ 
+ namespace fs = std::filesystem;
+ 
+@@ -50,7 +51,80 @@ static boost::container::flat_map<
+     std::string, std::shared_ptr<sdbusplus::asio::dbus_interface>>
+     inventoryIfaces;
+ static std::regex i2cDevRegex(R"((\d+)-([a-fA-F0-9]+))");
+-static bool createdSensors = false;
++std::map<size_t, size_t> createdCpuDevice;
++
++static bool isDeviceExistedInList(std::map<size_t, size_t>& checkList,
++        std::map<size_t, size_t>::iterator device)
++{
++    std::map<size_t, size_t>::iterator j;
++    for (j = checkList.begin(); j != checkList.end(); j++)
++    {
++        if (device->first == j->first && device->second == j->second)
++        {
++            return true;
++        }
++    }
++
++    return false;
++}
++
++static void getCPUDeviceList(const ManagedObjectType& sensorConfigs,
++                            std::map<size_t, size_t>& cpuDeviceList)
++{
++    SensorData sensorData;
++    std::pair<std::string, SensorBaseConfigMap> baseConfig;
++    std::string devType;
++    for (const std::pair<sdbusplus::message::object_path, SensorData>& sensor :
++         sensorConfigs)
++    {
++        sensorData = sensor.second;
++        auto sensorBase = sensorData.find(smproDevType);
++        if (sensorBase == sensorData.end())
++        {
++            std::cerr << "Error finding base configuration\n";
++            continue;
++        }
++        baseConfig = *sensorBase;
++        devType = smproDevType;
++
++        auto configBus = baseConfig.second.find("Bus");
++        auto configAddress = baseConfig.second.find("Address");
++
++        if (configBus == baseConfig.second.end() ||
++            configAddress == baseConfig.second.end())
++        {
++            std::cerr << "Error finding necessary entry in configuration\n";
++            continue;
++        }
++
++        const uint64_t* confBus = std::get_if<uint64_t>(&(configBus->second));
++        const uint64_t* confAddr =
++            std::get_if<uint64_t>(&(configAddress->second));
++
++        if ((confBus == nullptr) || (confAddr == nullptr))
++        {
++            std::cerr << "Cannot get bus or address, invalid configuration\n";
++            continue;
++        }
++        cpuDeviceList.insert(std::pair<size_t, size_t>(*confAddr, *confBus));
++    }
++}
++
++static bool needCreateCPUDeviceSensors(const ManagedObjectType& sensorConfigs) {
++    std::map<size_t, size_t>::iterator i;
++    std::map<size_t, size_t>cpuDeviceList;
++    getCPUDeviceList(sensorConfigs, cpuDeviceList);
++
++    for (i = cpuDeviceList.begin(); i != cpuDeviceList.end(); i++)
++    {
++        if (!isDeviceExistedInList(createdCpuDevice, i))
++        {
++            return true;
++        }
++    }
++    return false;
++}
++
+ 
+ static bool getDeviceInfo(const std::string& devPath, size_t* bus, size_t* addr)
+ {
+@@ -535,11 +609,7 @@ static void createSensorsCallback(
+                           *sensorData, *interfacePath, *devType, directory,
+                           &numCreated);
+ 
+-        if (numCreated != 0U)
+-        {
+-            createdSensors = true;
+-        }
+-
++        createdCpuDevice.insert(std::pair<size_t, size_t>(addr, bus));
+         std::cerr << "Device " << bus << ":" << addr << " have " << numCreated
+                   << " sensors \n";
+     }
+@@ -552,7 +622,7 @@ void createSensors(boost::asio::io_context& io,
+     auto getter = std::make_shared<GetSensorConfiguration>(
+         dbusConnection, [&io, &objectServer, &dbusConnection](
+                             const ManagedObjectType& sensorConfigs) {
+-            if (!createdSensors)
++            if (needCreateCPUDeviceSensors(sensorConfigs))
+             {
+                 createSensorsCallback(io, objectServer, dbusConnection,
+                                       sensorConfigs);
+-- 
+2.34.1
+
