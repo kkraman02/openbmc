@@ -7,6 +7,16 @@ PACKAGECONFIG:append = " dynamic-sensors"
 HOSTIPMI_PROVIDER_LIBRARY += "libdynamiccmds.so"
 
 SRC_URI += "\
+            file://0001-Allow-user-access-from-external-repos.patch \
+            file://0002-Disable-SDR-and-SEL-ipmi-commands-in-dynamic-library.patch \
+            file://0003-Response-thresholds-for-Get-SDR-command.patch \
+            file://0004-Revert-Confirm-presence-of-NIC-devices-described-in-.patch \
+            file://0005-dbus-sdr-support-static-FRU-s-ID-configuration.patch \
+            file://0006-Read-chassis-intrusion-status.patch \
+            file://0007-Correct-the-dhcp-object-path.patch \
+            file://0008-Change-method-for-NMI-triggering.patch \
+            file://0009-dcmihandler-Change-privilege-of-Get-DCMI-sensor-info.patch \
+            file://0010-dcmi-Support-fully-power-limit-setting-commands.patch \
             file://ampere-phosphor-softpoweroff \
             file://ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service \
            "

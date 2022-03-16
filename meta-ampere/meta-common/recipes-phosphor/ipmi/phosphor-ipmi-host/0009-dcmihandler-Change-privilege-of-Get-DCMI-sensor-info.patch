@@ -1,0 +1,57 @@
+From eb684779635f4f52abfa3181255121ed9b9881b8 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Thu, 23 Mar 2023 08:26:26 +0000
+Subject: [PATCH] dcmihandler: Change privilege of (Get DCMI sensor info) to
+ OPERATOR
+
+This commit changes the privilege to execute the command get DCMI sensor
+info (command 0x07) from USER to OPERATOR to match with Table 6.1 of
+DCMI specification.
+
+Tested:
+1. Create a user with USER/READONLY privilege
+2. $ipmitool -H ${BMC_IP} -U <user> -P <pass> -C 17 -I lanplus \
+	-L USER  raw 0x2c 0x07 0xdc 0x01 0x41 0x00 0x00
+=> Unable to send RAW command
+	(channel=0x0 netfn=0x2c lun=0x0 cmd=0x7 rsp=0xd4):
+	Insufficient privilege level
+3. Change the user privilege to OPERATOR or ADMIN:
+  $ipmitool -H ${BMC_IP} -U root -P 0penBmc -C 17 -I lanplus \
+	user priv <user id> <privilege id>
+4. Can successfully get the result from step 2.
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ dbus-sdr/sensorcommands.cpp | 2 +-
+ dcmihandler.cpp             | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dbus-sdr/sensorcommands.cpp b/dbus-sdr/sensorcommands.cpp
+index ee57eb6..dd98b11 100644
+--- a/dbus-sdr/sensorcommands.cpp
++++ b/dbus-sdr/sensorcommands.cpp
+@@ -2635,7 +2635,7 @@ void registerSensorFunctions()
+     // <Get DCMI Sensor Info>
+     ipmi::registerGroupHandler(ipmi::prioOpenBmcBase, ipmi::groupDCMI,
+                                ipmi::dcmi::cmdGetDcmiSensorInfo,
+-                               ipmi::Privilege::User,
++                               ipmi::Privilege::Operator,
+                                ipmi::dcmi::getSensorInfo);
+     }
+ }
+diff --git a/dcmihandler.cpp b/dcmihandler.cpp
+index e95ffa4..45bb135 100644
+--- a/dcmihandler.cpp
++++ b/dcmihandler.cpp
+@@ -1441,7 +1441,7 @@ void register_netfn_dcmi_functions()
+ // #ifndef FEATURE_DYNAMIC_SENSORS
+     // <Get Sensor Info>
+     ipmi_register_callback(NETFUN_GRPEXT, dcmi::Commands::GET_SENSOR_INFO, NULL,
+-                           getSensorInfo, PRIVILEGE_USER);
++                           getSensorInfo, PRIVILEGE_OPERATOR);
+ // #endif
+     // <Get DCMI Configuration Parameters>
+     ipmi_register_callback(NETFUN_GRPEXT, dcmi::Commands::GET_CONF_PARAMS, NULL,
+-- 
+2.25.1
+
