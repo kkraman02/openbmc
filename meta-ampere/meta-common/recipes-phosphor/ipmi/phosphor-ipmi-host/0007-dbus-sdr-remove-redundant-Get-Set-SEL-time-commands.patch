@@ -1,0 +1,113 @@
+From d272c65fa61a3e0a1d8712b9182a8206944cfca4 Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Thu, 21 Sep 2023 11:01:53 +0700
+Subject: [PATCH] dbus-sdr: remove redundant Get/Set SEL time commands
+
+In the dbus-sdr, the Set SEL time command is not implemented, it is an
+dummy function. Beside that the Get SEL command does not refer to dbus
+interface to get the SEL time, it is geting directly from hardware.
+
+Both Set/Get SEL time commands are implemented in storagehandler.cpp
+file, therefore, we should remove redundant commands in the dbus-sdr.
+
+Tested:
+    1. Request to Set SEL time
+       $ipmitool sel time set "12/31/2020 12:00:00"
+    2. Request to Get SEL time
+       $ipmitool sel time get
+    3. The result at step 2 as setting in step 1.
+
+Change-Id: I3357f7fb558976d57d48de240ffcc18655549e03
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+---
+ dbus-sdr/storagecommands.cpp | 28 ----------------------------
+ storagehandler.cpp           | 20 ++++++++++----------
+ 2 files changed, 10 insertions(+), 38 deletions(-)
+
+diff --git a/dbus-sdr/storagecommands.cpp b/dbus-sdr/storagecommands.cpp
+index 874e5b2..2a32bdd 100644
+--- a/dbus-sdr/storagecommands.cpp
++++ b/dbus-sdr/storagecommands.cpp
+@@ -1197,24 +1197,6 @@ ipmi::RspType<uint8_t> ipmiStorageClearSEL(ipmi::Context::ptr ctx,
+     return ipmi::responseSuccess(ipmi::sel::eraseComplete);
+ }
+ 
+-ipmi::RspType<uint32_t> ipmiStorageGetSELTime()
+-{
+-    struct timespec selTime = {};
+-
+-    if (clock_gettime(CLOCK_REALTIME, &selTime) < 0)
+-    {
+-        return ipmi::responseUnspecifiedError();
+-    }
+-
+-    return ipmi::responseSuccess(selTime.tv_sec);
+-}
+-
+-ipmi::RspType<> ipmiStorageSetSELTime(uint32_t)
+-{
+-    // Set SEL Time is not supported
+-    return ipmi::responseInvalidCommand();
+-}
+-
+ std::vector<uint8_t>
+     getType8SDRs(ipmi::sensor::EntityInfoMap::const_iterator& entity,
+                  uint16_t recordId)
+@@ -1314,16 +1296,6 @@ void registerStorageFunctions()
+     ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+                           ipmi::storage::cmdClearSel, ipmi::Privilege::Operator,
+                           ipmiStorageClearSEL);
+-
+-    // <Get SEL Time>
+-    ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+-                          ipmi::storage::cmdGetSelTime, ipmi::Privilege::User,
+-                          ipmiStorageGetSELTime);
+-
+-    // <Set SEL Time>
+-    ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+-                          ipmi::storage::cmdSetSelTime,
+-                          ipmi::Privilege::Operator, ipmiStorageSetSELTime);
+ }
+ } // namespace storage
+ } // namespace ipmi
+diff --git a/storagehandler.cpp b/storagehandler.cpp
+index b9f654c..fbedff7 100644
+--- a/storagehandler.cpp
++++ b/storagehandler.cpp
+@@ -892,16 +892,6 @@ void register_netfn_storage_functions()
+                           ipmi::storage::cmdGetSelInfo, ipmi::Privilege::User,
+                           ipmiStorageGetSelInfo);
+ 
+-    // <Get SEL Time>
+-    ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+-                          ipmi::storage::cmdGetSelTime, ipmi::Privilege::User,
+-                          ipmiStorageGetSelTime);
+-
+-    // <Set SEL Time>
+-    ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+-                          ipmi::storage::cmdSetSelTime,
+-                          ipmi::Privilege::Operator, ipmiStorageSetSelTime);
+-
+     // <Get SEL Timezone>
+     ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+                           ipmi::storage::cmdGetSelTimeUtcOffset,
+@@ -962,6 +952,16 @@ void register_netfn_storage_functions()
+                           ipmi::storage::cmdReserveSel, ipmi::Privilege::User,
+                           ipmiStorageReserveSel);
+ 
++        // <Get SEL Time>
++    ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
++                          ipmi::storage::cmdGetSelTime, ipmi::Privilege::User,
++                          ipmiStorageGetSelTime);
++
++    // <Set SEL Time>
++    ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
++                          ipmi::storage::cmdSetSelTime,
++                          ipmi::Privilege::Operator, ipmiStorageSetSelTime);
++
+     ipmi::fru::registerCallbackHandler();
+     return;
+ }
+-- 
+2.25.1
+
