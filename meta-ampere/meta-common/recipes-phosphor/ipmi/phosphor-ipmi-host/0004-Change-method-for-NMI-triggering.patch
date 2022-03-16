@@ -1,0 +1,82 @@
+From 2872ed9c844ca80cd2b88ed9631ba06a306e0fb0 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Wed, 17 May 2023 15:51:50 +0700
+Subject: [PATCH 4/6] Change method for NMI triggering
+
+This patch changes to use method NMI from interface
+"xyz.openbmc_project.Control.Host.NMI" of object path
+"/xyz/openbmc_project/control/host0/nmi" to trigger NMI to
+synchronize with Redfish.
+
+Tested:
+1. BMC is ON, host is ON
+2. ipmitool chassis power diag
+=> nmi service is called, NMI crash dump is generated in host.
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ chassishandler.cpp | 32 ++++++++++++--------------------
+ 1 file changed, 12 insertions(+), 20 deletions(-)
+
+diff --git a/chassishandler.cpp b/chassishandler.cpp
+index 553bbe0..4945838 100644
+--- a/chassishandler.cpp
++++ b/chassishandler.cpp
+@@ -886,34 +886,26 @@ int initiateChassisStateTransition(ipmi::Context::ptr& ctx,
+ }
+ 
+ //------------------------------------------
+-// Set Enabled property to inform NMI source
+-// handling to trigger a NMI_OUT BSOD.
++// Call method to trigger NMI
+ //------------------------------------------
+-int setNmiProperty(ipmi::Context::ptr& ctx, const bool value)
++int callNmiMethod(ipmi::Context::ptr& ctx)
+ {
+-    constexpr const char* nmiSourceObjPath =
+-        "/xyz/openbmc_project/Chassis/Control/NMISource";
+-    constexpr const char* nmiSourceIntf =
+-        "xyz.openbmc_project.Chassis.Control.NMISource";
+-    std::string bmcSourceSignal = "xyz.openbmc_project.Chassis.Control."
+-                                  "NMISource.BMCSourceSignal.ChassisCmd";
++    constexpr const char* nmiObjPath =
++        "/xyz/openbmc_project/control/host0/nmi";
++    constexpr const char* nmiIntf =
++        "xyz.openbmc_project.Control.Host.NMI";
+ 
+     std::string service;
+-    boost::system::error_code ec = ipmi::getService(ctx, nmiSourceIntf,
+-                                                    nmiSourceObjPath, service);
++    boost::system::error_code ec =
++        ipmi::getService(ctx, nmiIntf, nmiObjPath, service);
+     if (!ec)
+     {
+-        ec = ipmi::setDbusProperty(ctx, service, nmiSourceObjPath,
+-                                   nmiSourceIntf, "BMCSource", bmcSourceSignal);
+-    }
+-    if (!ec)
+-    {
+-        ec = ipmi::setDbusProperty(ctx, service, nmiSourceObjPath,
+-                                   nmiSourceIntf, "Enabled", value);
++        ctx->bus->yield_method_call(ctx->yield, ec, service, nmiObjPath,
++                                    nmiIntf, "NMI");
+     }
+     if (ec)
+     {
+-        log<level::ERR>("Failed to trigger NMI_OUT",
++        log<level::ERR>("Failed to trigger NMI",
+                         entry("EXCEPTION=%s", ec.message().c_str()));
+         return -1;
+     }
+@@ -1387,7 +1379,7 @@ ipmi::RspType<> ipmiChassisControl(ipmi::Context::ptr& ctx,
+             rc = initiateHostStateTransition(ctx, State::Host::Transition::Off);
+             break;
+         case CMD_PULSE_DIAGNOSTIC_INTR:
+-            rc = setNmiProperty(ctx, true);
++            rc = callNmiMethod(ctx);
+             break;
+ 
+         default:
+-- 
+2.34.1
+

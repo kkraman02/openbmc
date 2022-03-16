@@ -1,0 +1,45 @@
+From 850893a830ac396e6fad8b0a954d05f35ca25414 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Thu, 4 Jan 2024 10:28:48 +0000
+Subject: [PATCH] chassishandler: Interpret Transitioning state in
+ getPowerStatus
+
+phosphor-state-manager adds TransitioningToOff and TransitioningToOn
+state to the value set of CurrentPowerState under
+`xyz.openbmc_project.State.Chassis` interface. The current logic causes
+all the other values except for
+`xyz.openbmc_project.State.Chassis.PowerState.On` to be interpreted as
+`Off` in `ipmitool power status`. This patch supports interpreting
+CurrentPowerState value to adapt new states following the below logic
+
+*.Off => `ipmitool power status` returns Off
+*.TransitioningToOn => Off
+*.On => On
+*,TransitioningToOff => On
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ chassishandler.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/chassishandler.cpp b/chassishandler.cpp
+index 4945838..68f5189 100644
+--- a/chassishandler.cpp
++++ b/chassishandler.cpp
+@@ -983,8 +983,11 @@ std::optional<bool> getPowerStatus()
+         ipmi::Value powerState =
+             ipmi::getDbusProperty(*busp, service, chassisStatePath,
+                                   chassisStateIntf, "CurrentPowerState");
+-        powerGood = std::get<std::string>(powerState) ==
+-                    "xyz.openbmc_project.State.Chassis.PowerState.On";
++        std::string powerStateStr = std::get<std::string>(powerState);
++        if (powerStateStr.ends_with(".On") || powerStateStr.ends_with(".TransitioningToOff"))
++        {
++            powerGood = true;
++        }
+     }
+     catch (const std::exception& e)
+     {
+-- 
+2.25.1
+
