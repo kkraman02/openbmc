@@ -1,0 +1,99 @@
+From 469dbfeac14992d24873ae0677b972a79233bffd Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Mon, 26 Jun 2023 10:03:04 +0700
+Subject: Support to build storage commands in libipmi20 library
+
+Currently, the storage commands only is built in the libdynamicsensor
+library. To build those commands, we have to enable dynamic-sensor
+option which makes sensor commands are built too.
+
+To allow compiling storage commands w/o sensor commands, this commit
+adds 'dynamic-storages-only' option to request to build storage commands
+in libipmi20 library.
+
+Tested:
+  1. Disable dynamic-sensor option and enable dynamic-storages-only
+     option.
+  2. Built the openBmc image and flash to the board.
+  3. Request to read/write FRU device via ipmitool.
+     All of request work well.
+  4. Request to read SEL list.
+     Display list of SEL logs.
+
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+Change-Id: I330919e7eebbb80bf568f36ead69ade670b2f8d1
+---
+ meson.build        | 7 +++++++
+ meson_options.txt  | 3 +++
+ storagehandler.cpp | 4 ++++
+ 3 files changed, 14 insertions(+)
+
+diff --git a/meson.build b/meson.build
+index cb05cc9..9bcffae 100644
+--- a/meson.build
++++ b/meson.build
+@@ -79,6 +79,7 @@ feature_map = {
+   'hybrid-sensors'             : '-DFEATURE_HYBRID_SENSORS',
+   'sensors-cache'              : '-DFEATURE_SENSORS_CACHE',
+   'sel-logger-clears-sel'      : '-DFEATURE_SEL_LOGGER_CLEARS_SEL',
++  'dynamic-storages-only'      : '-DFEATURE_DYNAMIC_STORAGES_ONLY',
+ }
+ 
+ foreach option_key, option_value : feature_map
+@@ -205,6 +206,11 @@ if not get_option('transport-oem').disabled()
+   transportoem_src = ['transporthandler_oem.cpp']
+ endif
+ 
++stogare_cmds_src = []
++if get_option('dynamic-sensors').disabled() and not get_option('dynamic-storages-only').disabled()
++  stogare_cmds_src = ['dbus-sdr/storagecommands.cpp', 'dbus-sdr/sdrutils.cpp']
++endif
++
+ libipmi20_src = [
+   'app/channel.cpp',
+   'app/watchdog.cpp',
+@@ -227,6 +233,7 @@ libipmi20_src = [
+   'user_channel/channelcommands.cpp',
+   generated_src,
+   transportoem_src,
++  stogare_cmds_src,
+   conf_h,
+ ]
+ 
+diff --git a/meson_options.txt b/meson_options.txt
+index 59c597f..fb0c5f2 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -72,3 +72,6 @@ option('fru-yaml-gen', type: 'string', value: 'fru-read-example.yaml')
+ option('get-dbus-active-software', type: 'feature', description: 'Use the  getActiveSoftwareVersionInfo for the BMC version and dev_id.json as backup')
+ option('fw-ver-regex', type : 'string', value : '(\\\\d+)\\\\.(\\\\d+)', description : 'Regular expressions for parsing firmware revision')
+ option('matches-map', type : 'array', value : ['1', '2', '0', '0', '0', '0'], description : 'An array of integers')
++
++# libipmi20.so library
++option('dynamic-storages-only', type: 'feature', value: 'disabled', description: 'Request to compile storage commands in the libipmi20 library')
+\ No newline at end of file
+diff --git a/storagehandler.cpp b/storagehandler.cpp
+index 0ac735b..9e39310 100644
+--- a/storagehandler.cpp
++++ b/storagehandler.cpp
+@@ -872,6 +872,8 @@ void register_netfn_storage_functions()
+     // Do not register the hander if it dynamic sensors stack is used.
+ 
+ #ifndef FEATURE_DYNAMIC_SENSORS
++
++#ifndef FEATURE_DYNAMIC_STORAGES_ONLY
+     // <Get SEL Info>
+     ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+                           ipmi::storage::cmdGetSelInfo, ipmi::Privilege::User,
+@@ -916,6 +918,8 @@ void register_netfn_storage_functions()
+                           ipmi::storage::cmdReadFruData,
+                           ipmi::Privilege::Operator, ipmiStorageReadFruData);
+ 
++#endif // FEATURE_DYNAMIC_STORAGES_ONLY
++
+     // <Get Repository Info>
+     ipmi::registerHandler(ipmi::prioOpenBmcBase, ipmi::netFnStorage,
+                           ipmi::storage::cmdGetSdrRepositoryInfo,
+-- 
+2.25.1
+

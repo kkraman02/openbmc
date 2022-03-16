@@ -1,12 +1,18 @@
 FILESEXTRAPATHS:append := "${THISDIR}/${PN}:"
 
+PACKAGECONFIG[dynamic-storages-only] = "-Ddynamic-storages-only=enabled, -Ddynamic-storages-only=disabled"
+
 RRECOMMENDS:${PN} += "ipmitool"
 RDEPENDS:${PN} += "bash"
 
-PACKAGECONFIG:append = " dynamic-sensors"
-HOSTIPMI_PROVIDER_LIBRARY += "libdynamiccmds.so"
-
 SRC_URI += "\
+            file://0001-Allow-user-access-from-external-repos.patch \
+            file://0002-Support-to-build-stogare-commands-in-libipmi20-libra.patch \
+            file://0003-Response-thresholds-for-Get-SDR-command.patch \
+            file://0004-dbus-sdr-support-static-FRU-s-ID-configuration.patch \
+            file://0005-Change-method-for-NMI-triggering.patch \
+            file://0006-dcmi-Support-fully-power-limit-setting-commands.patch \
+            file://0007-dbus-sdr-support-reading-OEM-SEL-logs.patch \
             file://ampere-phosphor-softpoweroff \
             file://ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service \
            "
