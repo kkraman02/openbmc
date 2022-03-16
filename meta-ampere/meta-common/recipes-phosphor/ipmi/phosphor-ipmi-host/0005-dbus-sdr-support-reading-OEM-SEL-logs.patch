@@ -1,0 +1,68 @@
+From 5ecb6a0b8f07d2bb6af015eab3c73b338ffa7b46 Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Thu, 21 Sep 2023 13:54:28 +0700
+Subject: [PATCH 5/6] dbus-sdr: support reading OEM SEL logs
+
+This commit supports reading OEM SEL record type in range 0xC0-0xDF and
+0xE0-0xFF.
+
+Tested:
+    Request to show SEL logs, OEM SEL log is shown.
+
+Change-Id: I8e2d2d84143c79cb7e3575c3f713d2b3ad2aaaf7
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+---
+ dbus-sdr/storagecommands.cpp | 37 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/dbus-sdr/storagecommands.cpp b/dbus-sdr/storagecommands.cpp
+index 8a5f14b..4c59919 100644
+--- a/dbus-sdr/storagecommands.cpp
++++ b/dbus-sdr/storagecommands.cpp
+@@ -1168,6 +1168,43 @@ ipmi::RspType<uint16_t,                   // Next Record ID
+                             sensorNum, eventType, eventDir, eventData});
+     }
+ 
++    if (recordType >= dynamic_sensors::ipmi::sel::oemTsEventFirst &&
++        recordType <= dynamic_sensors::ipmi::sel::oemTsEventLast)
++    {
++        // Get the timestamp
++        std::tm timeStruct = {};
++        std::istringstream entryStream(entryTimestamp);
++
++        uint32_t timestamp = ipmi::sel::invalidTimeStamp;
++        if (entryStream >> std::get_time(&timeStruct, "%Y-%m-%dT%H:%M:%S"))
++        {
++            timestamp = std::mktime(&timeStruct);
++        }
++
++        // Only keep the bytes that fit in the record
++        std::array<uint8_t, dynamic_sensors::ipmi::sel::oemTsEventSize>
++            eventData{};
++        std::copy_n(eventDataBytes.begin(),
++                    std::min(eventDataBytes.size(), eventData.size()),
++                    eventData.begin());
++
++        return ipmi::responseSuccess(nextRecordID, recordID, recordType,
++                                     oemTsEventType{timestamp, eventData});
++    }
++
++    if (recordType >= dynamic_sensors::ipmi::sel::oemEventFirst)
++    {
++        // Only keep the bytes that fit in the record
++        std::array<uint8_t, dynamic_sensors::ipmi::sel::oemEventSize>
++            eventData{};
++        std::copy_n(eventDataBytes.begin(),
++                    std::min(eventDataBytes.size(), eventData.size()),
++                    eventData.begin());
++
++        return ipmi::responseSuccess(nextRecordID, recordID, recordType,
++                                     eventData);
++    }
++
+     return ipmi::responseUnspecifiedError();
+ }
+ 
+-- 
+2.34.1
+
