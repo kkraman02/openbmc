@@ -1,0 +1,35 @@
+From 4929d17b99aba2ac5965a3999417bee6bcf78b2d Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Fri, 14 Jul 2023 15:01:33 +0700
+Subject: [PATCH 2/4] Add d-bus OEM for boot progress
+
+This commit adds the BootProgressOEM for the OEM-specific LastState
+as defined in the DEN0069C_SBMR_1.1 document.
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+
+Signed-off-by: Thang Q. Nguyen <thang@os.amperecomputing.com>
+---
+ yaml/xyz/openbmc_project/State/Boot/Progress.interface.yaml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/yaml/xyz/openbmc_project/State/Boot/Progress.interface.yaml b/yaml/xyz/openbmc_project/State/Boot/Progress.interface.yaml
+index b064f12..d2759a4 100644
+--- a/yaml/xyz/openbmc_project/State/Boot/Progress.interface.yaml
++++ b/yaml/xyz/openbmc_project/State/Boot/Progress.interface.yaml
+@@ -18,6 +18,12 @@ properties:
+           BootProgress value to know how long the boot has been on the current
+           boot step.
+ 
++    - name: BootProgressOem
++      type: string
++      description: >
++          This property shall represent the OEM-specific LastState of
++          the BootProgress.
++
+ enumerations:
+     - name: ProgressStages
+       description: >
+-- 
+2.34.1
+
