@@ -1,0 +1,95 @@
+From 731df83b07a8647994b3a27a48de0a845e274be7 Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Tue, 29 Aug 2023 03:25:35 +0000
+Subject: [PATCH] Generate UUID if not exist in FRU
+
+In case there is no UUID in FRU, generate a new one using uuid_generate_random()
+https://man7.org/linux/man-pages/man3/uuid_generate.3.html
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+Change-Id: I3d6654d8a66edcec91b3911742f9ae4ba33ef891
+---
+ src/fru_utils.cpp | 42 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
+
+diff --git a/src/fru_utils.cpp b/src/fru_utils.cpp
+index 0bb92b9..6797b86 100644
+--- a/src/fru_utils.cpp
++++ b/src/fru_utils.cpp
+@@ -28,6 +28,9 @@
+ #include <sstream>
+ #include <string>
+ #include <vector>
++#include <fstream>
++#include <unistd.h>
++#include <uuid/uuid.h>
+ 
+ extern "C"
+ {
+@@ -37,6 +40,7 @@ extern "C"
+ 
+ static constexpr bool debug = false;
+ constexpr size_t fruVersion = 1; // Current FRU spec version number is 1
++std::string uuidFs = "/var/lib/uuid";
+ 
+ std::tm intelEpoch(void)
+ {
+@@ -91,6 +95,24 @@ enum SubManagementAccessRecord : uint8_t
+     systemUniqueID = 0x07
+ };
+ 
++void storeUuid(std::string uuid)
++{
++    std::ofstream bpf(uuidFs.c_str());
++    bpf << uuid;
++
++    bpf.close();
++}
++
++std::string getUuid()
++{
++    std::string uuid;
++    std::ifstream bpf(uuidFs.c_str());
++    bpf >> uuid;
++    bpf.close();
++
++    return uuid;
++}
++
+ /* Decode FRU data into a std::string, given an input iterator and end. If the
+  * state returned is fruDataOk, then the resulting string is the decoded FRU
+  * data. The input iterator is advanced past the data consumed.
+@@ -299,11 +321,29 @@ static void parseMultirecordUUID(
+      */
+     const std::array<uint8_t, uuidDataLen> uuidCharOrder = {
+         3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15};
++    uuid_t uuid;
++    char uuid_str[37];
+     uint32_t areaOffset =
+         device.at(getHeaderAreaFieldOffset(fruAreas::fruAreaMultirecord));
+-
+     if (areaOffset == 0)
+     {
++        /* Just generate UUID for the MB FRU with CHASSIS_TYPE is "23" */
++        if ((result.find("MULTIRECORD_UUID") == result.end()) &&
++            (result.find("CHASSIS_TYPE") != result.end()) &&
++            (result["CHASSIS_TYPE"] == "23"))
++        {
++            /* Check the uuid file /var/lib/uuid is exists */
++            if (access(uuidFs.c_str(), F_OK) != 0)
++            {
++                /* uuid file does not exist, create a new one */
++                std::cout << "UUID does not exist, generating a new one" << std::endl;
++                uuid_generate_random(uuid);
++                uuid_unparse_lower(uuid, uuid_str);
++                storeUuid(uuid_str);
++            }
++            /* Get uuid from the uuid file */
++            result["MULTIRECORD_UUID"] = getUuid();
++        }
+         return;
+     }
+ 
+-- 
+2.25.1
+
