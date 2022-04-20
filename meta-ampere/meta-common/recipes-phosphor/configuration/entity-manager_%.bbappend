@@ -2,7 +2,10 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += " \
             file://artesyn_psu.json \
+            file://0001-Generate-UUID-if-not-exist-in-FRU.patch \
            "
+
+TARGET_LDFLAGS += "-luuid"
 
 do_install:append() {
      install -d ${D}${datadir}/${PN}/configurations
