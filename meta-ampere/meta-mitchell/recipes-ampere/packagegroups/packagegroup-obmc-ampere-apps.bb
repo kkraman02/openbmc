@@ -35,6 +35,7 @@ SUMMARY:${PN}-system = "Ampere System"
 RDEPENDS:${PN}-system = " \
                          smbios-mdr \
                          bootstrap-account \
+                         libmctp \
                         "
 
 SUMMARY:${PN}-flash = "Ampere Flash"
