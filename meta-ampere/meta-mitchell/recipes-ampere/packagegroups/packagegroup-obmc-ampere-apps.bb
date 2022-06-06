@@ -36,6 +36,7 @@ RDEPENDS:${PN}-system = " \
                          smbios-mdr \
                          bootstrap-account \
                          libmctp \
+                         pldm \
                         "
 
 RDEPENDS:${PN}-system:append:mtmitchell = "ampere-gpio-config"
