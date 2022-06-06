@@ -1,0 +1,46 @@
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
+RDEPENDS:${PN} += "bash"
+
+SRC_URI = "git://github.com/ampere-openbmc/pldm;protocol=https;branch=ampere \
+           file://host_eid \
+           file://eid_to_name.json \
+           file://dbus_to_host_effecter.json \
+           file://nvparm.a \
+           file://gpt.h \
+           file://spinor_func.h \
+           file://utils.h \
+          "
+SRCREV = "3aed3ce05e80f9bbe94608ce3d7eef9cbac4c64f"
+
+SYSTEMD_SERVICE:${PN}:remove = " \
+                                pldmSoftPowerOff.service \
+                               "
+SRC_URI:remove = "file://pldm-softpoweroff"
+
+EXTRA_OEMESON = " \
+        -Dtests=disabled \
+        -Dsleep-between-get-sensor-reading=10 \
+        -Dpoll-sensor-timer-interval=3000 \
+        "
+do_configure:prepend() {
+  cd ${WORKDIR}/git
+  mkdir libnvparm
+  cp ${WORKDIR}/nvparm.a ${WORKDIR}/git/libnvparm/
+  cp ${WORKDIR}/gpt.h ${WORKDIR}/git/libnvparm/
+  cp ${WORKDIR}/spinor_func.h ${WORKDIR}/git/libnvparm/
+  cp ${WORKDIR}/utils.h ${WORKDIR}/git/libnvparm/
+}
+
+do_install:append() {
+    install -d ${D}/${datadir}/pldm
+    install ${WORKDIR}/host_eid ${D}/${datadir}/pldm/
+    install ${WORKDIR}/eid_to_name.json ${D}/${datadir}/pldm/
+    install ${WORKDIR}/dbus_to_host_effecter.json ${D}/${datadir}/pldm/host/
+    LINK="${D}${systemd_unitdir}/obmc-host-shutdown@0.target.wants/pldmSoftPowerOff.service"
+    rm -f $LINK
+    LINK="${D}${systemd_unitdir}/obmc-host-warm-reboot@0.target.wants/pldmSoftPowerOff.service"
+    rm -f $LINK
+    rm -f ${D}${systemd_unitdir}/system/pldmSoftPowerOff.service
+    rm -rf ${D}/${bindir}/pldm-softpoweroff
+}
