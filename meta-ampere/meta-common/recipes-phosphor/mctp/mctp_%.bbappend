@@ -1,7 +1,10 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+RDEPENDS:${PN} += "bash"
+
 SRC_URI:append = " \
                   file://mctp-local.service \
+                  file://0001-Update-NetworkID-D-Bus-property-type.patch \
                  "
 
 SYSTEMD_SERVICE:${PN} += "mctp-local.service"
