@@ -1,15 +1,23 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI:append = " file://host_eid"
+RDEPENDS:${PN} += "bash"
+
+SRC_URI = "git://github.com/ampere-openbmc/pldm;protocol=https;branch=ampere \
+           file://host_eid \
+          "
+SRCREV = "b0891bcaaea2483b0260463d541bdc8a8cd6fd03"
 
 SYSTEMD_SERVICE:${PN}:remove = " \
                                 pldmSoftPowerOff.service \
                                "
 SRC_URI:remove = "file://pldm-softpoweroff"
 
-EXTRA_OEMESON:append = " \
-                        -Dtransport-implementation=af-mctp \
-                       "
+EXTRA_OEMESON = " \
+        -Dtests=disabled \
+        -Dampere=enabled \
+        -Doem-ibm=disabled \
+        -Dtransport-implementation=af-mctp \
+        "
 
 do_install:append() {
     install -d ${D}/${datadir}/pldm

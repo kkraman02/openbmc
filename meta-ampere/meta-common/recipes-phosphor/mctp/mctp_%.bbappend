@@ -1,8 +1,10 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+RDEPENDS:${PN} += "bash"
+
 SRC_URI:append = " \
-                  file://mctp-local.service \
-                 "
+    file://mctp-local.service \
+"
 
 SYSTEMD_SERVICE:${PN} += "mctp-local.service"
 
