@@ -15,7 +15,6 @@ SRC_URI = "git://github.com/ampere-openbmc/ampere-platform-mgmt.git;protocol=htt
 SRC_URI:append = " \
            file://ampere_add_redfishevent.sh \
            file://ampere_update_mac.sh \
-           file://ampere_spi_util.sh \
            file://ampere_post_fan_status_monitor.sh \
            file://ampere_fan_status_monitor.sh \
            file://ampere_fan_status_monitor.service \
@@ -52,7 +51,6 @@ do_install() {
     install -m 0755 ${WORKDIR}/ampere_update_mac.sh ${D}/${sbindir}/
     install -m 0755 ${S}/ampere_eeprom_prog ${D}/${sbindir}/ampere_eeprom_prog
     install -m 0755 ${S}/ampere_fru_upgrade ${D}/${sbindir}/ampere_fru_upgrade
-    install -m 0755 ${WORKDIR}/ampere_spi_util.sh ${D}/${sbindir}/
     install -m 755 ${WORKDIR}/ampere_post_fan_status_monitor.sh ${D}/${sbindir}/
     install -m 755 ${WORKDIR}/ampere_fan_status_monitor.sh ${D}/${sbindir}/
     install -m 755 ${WORKDIR}/ampere_power_control_lock.sh ${D}/${sbindir}/
