@@ -1,0 +1,61 @@
+From eeb258a4e1a58ce7a1e46d460e70bd6e4cb5d5ab Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Tue, 11 Jul 2023 11:14:12 +0700
+Subject: [PATCH] button-handler: Add button event log
+
+Support the Redfish log once the power button and the reset
+button were pressed.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+Change-Id: Ic27bfdb7cd9bb313a26116112618e4d7e22dd4ca
+---
+ src/button_handler.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/button_handler.cpp b/src/button_handler.cpp
+index 36ed096..0390023 100755
+--- a/src/button_handler.cpp
++++ b/src/button_handler.cpp
+@@ -7,6 +7,7 @@
+ #include <phosphor-logging/lg2.hpp>
+ #include <xyz/openbmc_project/State/Chassis/server.hpp>
+ #include <xyz/openbmc_project/State/Host/server.hpp>
++#include <systemd/sd-journal.h>
+ namespace phosphor
+ {
+ namespace button
+@@ -34,6 +35,9 @@ constexpr auto mapperObjPath = "/xyz/openbmc_project/object_mapper";
+ constexpr auto mapperService = "xyz.openbmc_project.ObjectMapper";
+ constexpr auto BMC_POSITION = 0;
+ 
++std::string message;
++std::string redfishMsgId;
++
+ Handler::Handler(sdbusplus::bus_t& bus) : bus(bus)
+ {
+     try
+@@ -236,6 +240,10 @@ void Handler::handlePowerEvent(PowerEvent powerEventType,
+                     transition = Host::Transition::Off;
+                 }
+                 lg2::info("handlePowerEvent : Handle power button press ");
++		message = "The power button pressed";
++		redfishMsgId = "OpenBMC.0.1.PowerButtonPressed";
++		sd_journal_send("MESSAGE=%s", message.c_str(),
++				"REDFISH_MESSAGE_ID=%s", redfishMsgId.c_str(), NULL);
+ 
+                 break;
+             }
+@@ -284,6 +292,10 @@ void Handler::handlePowerEvent(PowerEvent powerEventType,
+             }
+ 
+             lg2::info("Handling reset button press");
++	    message = "The reset button pressed";
++	    redfishMsgId = "OpenBMC.0.1.ResetButtonPressed";
++	    sd_journal_send("MESSAGE=%s", message.c_str(),
++			    "REDFISH_MESSAGE_ID=%s", redfishMsgId.c_str(), NULL);
+ #ifdef ENABLE_RESET_BUTTON_DO_WARM_REBOOT
+             transition = Host::Transition::ForceWarmReboot;
+ #else
+-- 
+2.34.1
+
