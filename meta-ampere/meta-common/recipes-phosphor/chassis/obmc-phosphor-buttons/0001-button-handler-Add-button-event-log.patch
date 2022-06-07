@@ -1,0 +1,62 @@
+From 22f5d4e29e3109020b3b2c9238e872fb0791dcd9 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Mon, 18 Jul 2022 14:45:31 +0700
+Subject: [PATCH] button-handler: Add button event log
+
+Support the Redfish log once the power button and the reset
+button were pressed.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/button_handler.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/button_handler.cpp b/src/button_handler.cpp
+index f38882e..309c95b 100755
+--- a/src/button_handler.cpp
++++ b/src/button_handler.cpp
+@@ -5,6 +5,7 @@
+ #include <phosphor-logging/lg2.hpp>
+ #include <xyz/openbmc_project/State/Chassis/server.hpp>
+ #include <xyz/openbmc_project/State/Host/server.hpp>
++#include <systemd/sd-journal.h>
+ namespace phosphor
+ {
+ namespace button
+@@ -32,6 +33,9 @@ constexpr auto mapperObjPath = "/xyz/openbmc_project/object_mapper";
+ constexpr auto mapperService = "xyz.openbmc_project.ObjectMapper";
+ constexpr auto BMC_POSITION = 0;
+ 
++std::string message;
++std::string redfishMsgId;
++
+ Handler::Handler(sdbusplus::bus_t& bus) : bus(bus)
+ {
+     try
+@@ -301,6 +305,11 @@ void Handler::powerReleased(sdbusplus::message_t& msg)
+ 
+         handlePowerEvent(PowerEvent::powerReleased,
+                          std::chrono::microseconds(time));
++
++        message = "The power button pressed";
++        redfishMsgId = "OpenBMC.0.1.PowerButtonPressed";
++        sd_journal_send("MESSAGE=%s", message.c_str(),
++                "REDFISH_MESSAGE_ID=%s", redfishMsgId.c_str(), NULL);
+     }
+     catch (const sdbusplus::exception_t& e)
+     {
+@@ -316,6 +325,11 @@ void Handler::resetReleased(sdbusplus::message_t& /* msg */)
+         // No need to calculate duration, set to 0.
+         handlePowerEvent(PowerEvent::resetReleased,
+                          std::chrono::microseconds(0));
++
++        message = "The reset button pressed";
++        redfishMsgId = "OpenBMC.0.1.ResetButtonPressed";
++        sd_journal_send("MESSAGE=%s", message.c_str(),
++                "REDFISH_MESSAGE_ID=%s", redfishMsgId.c_str(), NULL);
+     }
+     catch (const sdbusplus::exception_t& e)
+     {
+-- 
+2.25.1
+
