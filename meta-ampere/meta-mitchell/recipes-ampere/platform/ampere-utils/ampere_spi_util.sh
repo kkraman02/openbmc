@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # shellcheck disable=SC2046
-# shellcheck source=meta-ampere/meta-mitchell/recipes-ampere/platform/ampere-platform-init/gpio-lib.sh
+# shellcheck source=/dev/null
+
 source /usr/sbin/gpio-lib.sh
 
 spi_address="1e630000.spi"
@@ -26,7 +27,7 @@ bind_aspeed_smc_driver() {
 	echo "Bind the ASpeed SMC driver"
 	echo "${spi_address}" > "${spi_bind}"  2>/dev/null
 	# Check the HNOR partition available
-	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
+	HOST_MTD=$(< /proc/mtd grep "hnor" | sed -n 's/^\(.*\):.*/\1/p')
 	if [ -z "$HOST_MTD" ]; then
 		echo "${spi_address}" > "${spi_unbind}"
 		sleep 0.1
@@ -61,7 +62,7 @@ unbind_aspeed_smc_driver() {
 		fi
 	fi
 
-	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
+	HOST_MTD=$(< /proc/mtd grep "hnor" | sed -n 's/^\(.*\):.*/\1/p')
 	if [ -n "$HOST_MTD" ]; then
 		# If the HNOR partition is available, then unbind driver
 		# BMC access SPI-NOR resource
@@ -91,7 +92,7 @@ lock_spi_resource() {
 			break
 		fi
 	done
-
+	
 	if [ "$cnt" -eq "0" ]; then
 		echo "Timeout 10 seconds, SPI-NOR is still locked by another process"
 		return 1
