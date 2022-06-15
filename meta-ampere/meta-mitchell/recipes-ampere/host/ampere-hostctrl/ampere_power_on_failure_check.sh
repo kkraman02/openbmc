@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# shellcheck source=meta-ampere/meta-mitchell/recipes-ampere/platform/ampere-platform-init/gpio-lib.sh
-source /usr/sbin/gpio-lib.sh
+# shellcheck disable=SC2046
+# shellcheck source=meta-ampere/meta-common/recipes-ampere/platform/ampere-utils/utils-lib.sh
+source /usr/sbin/utils-lib.sh
 
 function check_cpu_presence()
 {
 	# Check CPU presence, identify whether it is 1P or 2P system
-	s0_presence=$(gpioget $(gpiofind presence-cpu0))
-	s1_presence=$(gpioget $(gpiofind presence-cpu1))
+	s0_presence=$(sx_present 0)
+	s1_presence=$(sx_present 1)
 	if [ "$s0_presence" == "0" ] && [ "$s1_presence" == "0" ]; then
 		ampere_add_redfishevent.sh OpenBMC.0.1.AmpereEvent.OK "Host firmware boots with 2 Processor"
 	elif [ "$s0_presence" == "0" ]; then
