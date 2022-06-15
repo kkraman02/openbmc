@@ -29,6 +29,7 @@ RDEPENDS:${PN}-chassis = " \
                             phosphor-logging \
                             phosphor-post-code-manager \
                             phosphor-host-postd \
+                            ampere-power-on-failure-check \
                          "
 
 SUMMARY:${PN}-system = "Ampere System"
