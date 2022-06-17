@@ -1,0 +1,95 @@
+From ffecf4013cac93aef601337b38a55a63f2dc306d Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Tue, 14 Nov 2023 12:33:35 +0700
+Subject: [PATCH 11/13] Redfish: add message registries for power limit events
+
+Add message registries to handle total power consumption events:
+- Total power consumption exceeds the power limit.
+- Total power consumption drops below the power limit.
+
+Change-Id: Ie9f65c4c1f54a167b15d04e7f8e7bbc0b052179e
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+---
+ redfish-core/include/registries/openbmc.json  | 18 +++++++++++
+ .../registries/openbmc_message_registry.hpp   | 30 ++++++++++++++++++-
+ 2 files changed, 47 insertions(+), 1 deletion(-)
+
+diff --git a/redfish-core/include/registries/openbmc.json b/redfish-core/include/registries/openbmc.json
+index 521d49a4..11bd9939 100644
+--- a/redfish-core/include/registries/openbmc.json
++++ b/redfish-core/include/registries/openbmc.json
+@@ -1699,6 +1699,24 @@
+             "Resolution": "None.",
+             "Severity": "Critical"
+         },
++        "TotalPowerConsumptionDropBelowTheLimit": {
++            "Description": "Indicate the total power consumption drops below the power limit",
++            "Message": "Total power consumption drops below power limit. The total power consumption is %1, the power limit is %2.",
++            "MessageSeverity": "OK",
++            "NumberOfArgs": 2,
++            "ParamTypes": ["number", "number"],
++            "Resolution": "None.",
++            "Severity": "OK"
++        },
++        "TotalPowerConsumptionExceedTheLimit": {
++            "Description": "Indicate the total power consumption exceeds the power limit",
++            "Message": "Total power consumption exeeds power limit. The total power consumption is %1, the power limit is %2.",
++            "MessageSeverity": "Critical",
++            "NumberOfArgs": 2,
++            "ParamTypes": ["number", "number"],
++            "Resolution": "None.",
++            "Severity": "Critical"
++        },
+         "VoltageRegulatorOverheated": {
+             "Description": "Indicates that the specified voltage regulator overheated.",
+             "Message": "%1 Voltage Regulator Overheated.",
+diff --git a/redfish-core/include/registries/openbmc_message_registry.hpp b/redfish-core/include/registries/openbmc_message_registry.hpp
+index e78719d9..45c7b713 100644
+--- a/redfish-core/include/registries/openbmc_message_registry.hpp
++++ b/redfish-core/include/registries/openbmc_message_registry.hpp
+@@ -2392,6 +2392,32 @@ constexpr std::array registry =
+             {},
+             "None.",
+         }},
++    MessageEntry{
++        "TotalPowerConsumptionDropBelowTheLimit",
++        {
++            "Indicate the total power consumption drops below the power limit",
++            "Total power consumption drops below power limit. The total power consumption is %1, the power limit is %2.",
++            "OK",
++            2,
++            {
++                "number",
++                "number",
++            },
++            "None.",
++        }},
++    MessageEntry{
++        "TotalPowerConsumptionExceedTheLimit",
++        {
++            "Indicate the total power consumption exceeds the power limit",
++            "Total power consumption exeeds power limit. The total power consumption is %1, the power limit is %2.",
++            "Critical",
++            2,
++            {
++                "number",
++                "number",
++            },
++            "None.",
++        }},
+     MessageEntry{
+         "VoltageRegulatorOverheated",
+         {
+@@ -2604,6 +2630,8 @@ enum class Index
+     systemPowerLost = 192,
+     systemPowerOffFailed = 193,
+     systemPowerOnFailed = 194,
+-    voltageRegulatorOverheated = 195,
++    totalPowerConsumptionDropBelowTheLimit = 195,
++    totalPowerConsumptionExceedTheLimit = 196,
++    voltageRegulatorOverheated = 197,
+ };
+ } // namespace redfish::registries::openbmc
+-- 
+2.34.1
+

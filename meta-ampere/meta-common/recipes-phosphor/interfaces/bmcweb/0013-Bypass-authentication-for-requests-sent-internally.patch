@@ -1,0 +1,82 @@
+From e25c8145323cffd7783d9c93ec10533c6fa453ec Mon Sep 17 00:00:00 2001
+From: arunthomas <arunthomasb@ami.com>
+Date: Thu, 21 Sep 2023 13:30:03 +0530
+Subject: [PATCH 13/13] Bypass authentication for requests sent internally
+
+PATCH request containing If-Match header with the value of etag causes the BMCWEB to crash. To compute the etag, a new GET request for the same URI is internally generated. Same req.session is assigned to the new request. The new req gets authenticated and when privileges are assigned in  populateUserInfo() BMCWEB will get crashed when req.session members are accessed.
+
+For the new GET request which have the same req.session created for original PATCH request, bypass authentication and privilege assignment, since the same credentials are already validated and its a overhead to validate again.
+
+Tested: Run Redfish Protocol validator and got passed.
+
+Change-Id: Iaad2b1f0e982b480e9fab24005ce8b7c258882c3
+Signed-off-by: arunthomas <arunthomasb@ami.com>
+---
+ http/app.hpp                   | 4 ++--
+ http/routing.hpp               | 4 ++--
+ redfish-core/include/query.hpp | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/http/app.hpp b/http/app.hpp
+index 1a7af832..2b029c28 100644
+--- a/http/app.hpp
++++ b/http/app.hpp
+@@ -58,9 +58,9 @@ class App
+     }
+ 
+     void handle(Request& req,
+-                const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
++                const std::shared_ptr<bmcweb::AsyncResp>& asyncResp, bool bypassAuth = false)
+     {
+-        router.handle(req, asyncResp);
++        router.handle(req, asyncResp, bypassAuth);
+     }
+ 
+     DynamicRule& routeDynamic(std::string&& rule)
+diff --git a/http/routing.hpp b/http/routing.hpp
+index 6ab1327f..50831a4f 100644
+--- a/http/routing.hpp
++++ b/http/routing.hpp
+@@ -612,7 +612,7 @@ class Router
+     }
+ 
+     void handle(Request& req,
+-                const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
++                const std::shared_ptr<bmcweb::AsyncResp>& asyncResp, bool bypassAuth = false)
+     {
+         std::optional<HttpVerb> verb = httpVerbFromBoost(req.method());
+         if (!verb || static_cast<size_t>(*verb) >= perMethods.size())
+@@ -669,7 +669,7 @@ class Router
+         BMCWEB_LOG_DEBUG("Matched rule '{}' {} / {}", rule.rule,
+                          static_cast<uint32_t>(*verb), rule.getMethods());
+ 
+-        if (req.session == nullptr)
++        if (req.session == nullptr || bypassAuth)
+         {
+             rule.handle(req, asyncResp, params);
+             return;
+diff --git a/redfish-core/include/query.hpp b/redfish-core/include/query.hpp
+index 5962093b..3b20ae92 100644
+--- a/redfish-core/include/query.hpp
++++ b/redfish-core/include/query.hpp
+@@ -48,7 +48,7 @@ inline void
+     // Restart the request without if-match
+     req.req.erase(boost::beast::http::field::if_match);
+     BMCWEB_LOG_DEBUG("Restarting request");
+-    app.handle(req, asyncResp);
++    app.handle(req, asyncResp, true);
+ }
+ 
+ inline bool handleIfMatch(crow::App& app, const crow::Request& req,
+@@ -104,7 +104,7 @@ inline bool handleIfMatch(crow::App& app, const crow::Request& req,
+     getReqAsyncResp->res.setCompleteRequestHandler(std::bind_front(
+         afterIfMatchRequest, std::ref(app), asyncResp, req, ifMatch));
+ 
+-    app.handle(newReq, getReqAsyncResp);
++    app.handle(newReq, getReqAsyncResp, true);
+     return false;
+ }
+ 
+-- 
+2.34.1
+

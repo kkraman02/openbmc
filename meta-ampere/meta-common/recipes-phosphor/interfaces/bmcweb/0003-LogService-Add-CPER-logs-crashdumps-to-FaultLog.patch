@@ -1,0 +1,221 @@
+From 728c213869d0e5d7ebcd67f78672c82775a61175 Mon Sep 17 00:00:00 2001
+From: Claire Weinan <cweinan@google.com>
+Date: Fri, 12 May 2023 10:23:33 +0700
+Subject: [PATCH 03/13] LogService: Add CPER logs & crashdumps to FaultLog
+
+Background: The fault log manager (in the phosphor-debug-collector
+module) now receives D-Bus signals to be notified when new CPER logs
+and Crashdumps are available in BMC. Signals for CPER logs come from
+the bios-bmc-smm-error-logger daemon and signals for crashdumps come
+from Intel's proprietary crashdump daemon.
+
+Here we add the ability to parse CPER log and crashdump information
+received from the fault log manager over D-Bus and output it in fault
+log entries.
+
+Example fault log entry referencing CPER log:
+{
+  "@odata.id": "/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries/19",
+  "@odata.type": "#LogEntry.v1_8_0.LogEntry",
+  "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/1E5D8F94-2011-413A-B958-961797D78237/Entries/afe46336-4564-47d5-8df3-bac150122a9d",
+  "Created": "2022-07-25T14:56:36.477+00:00",
+  "DiagnosticDataType": "OEM",
+  "EntryType": "Oem",
+  "Id": "19",
+  "Name": "FaultLog Dump Entry",
+  "OEMDiagnosticDataType": "OpenBMC Fault Log",
+  "OemRecordFormat": "CPER"
+}
+
+Example fault log entry referencing crashdump:
+{
+  "@odata.id": "/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries/21",
+  "@odata.type": "#LogEntry.v1_8_0.LogEntry",
+  "AdditionalDataURI": "/redfish/v1/Systems/system/LogServices/Crashdump/Entries/0",
+  "Created": "2022-07-25T14:59:24.113+00:00",
+  "DiagnosticDataType": "OEM",
+  "EntryType": "Oem",
+  "Id": "21",
+  "Name": "FaultLog Dump Entry",
+  "OEMDiagnosticDataType": "OpenBMC Fault Log",
+  "OemRecordFormat": "Crashdump"
+}
+
+Tested:
+
+Get dump entries individually and as a collection.
+  Example commands:
+  curl -k -H "X-Auth-Token: $token" -X GET http://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries
+
+  curl -k -H "X-Auth-Token: $token" -X GET
+  http://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries/1
+
+Redfish Service Validator succeeded on the following URI tree:
+/redfish/v1/Managers/bmc/LogServices/FaultLog
+
+Signed-off-by: Claire Weinan <cweinan@google.com>
+Change-Id: I79c5e220f9c22312817a634d2e4e998dc02deced
+---
+ redfish-core/lib/log_services.hpp | 94 ++++++++++++++++++++++++++++++-
+ 1 file changed, 91 insertions(+), 3 deletions(-)
+
+diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
+index 5354f0a4..6aca4a28 100644
+--- a/redfish-core/lib/log_services.hpp
++++ b/redfish-core/lib/log_services.hpp
+@@ -333,6 +333,7 @@ inline void parseDumpEntryFromDbusObject(
+     const dbus::utility::ManagedObjectType::value_type& object,
+     std::string& dumpStatus, uint64_t& size, uint64_t& timestampUs,
+     std::string& originatorId, log_entry::OriginatorTypes& originatorType,
++    std::string& entryType, std::string& primaryLogId,
+     const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
+ {
+     for (const auto& interfaceMap : object.second)
+@@ -426,6 +427,45 @@ inline void parseDumpEntryFromDbusObject(
+                 }
+             }
+         }
++        else if (interfaceMap.first ==
++            "xyz.openbmc_project.Dump.Entry.FaultLog")
++        {
++            for (const auto& propertyMap : interfaceMap.second)
++            {
++                if (propertyMap.first == "Type")
++                {
++                    const std::string* entryTypePtr =
++                        std::get_if<std::string>(&propertyMap.second);
++                    if (entryTypePtr == nullptr)
++                    {
++                        messages::internalError(asyncResp->res);
++                        break;
++                    }
++                    if (*entryTypePtr ==
++                        "xyz.openbmc_project.Dump.Entry.FaultLog.FaultDataType.Crashdump")
++                    {
++                        entryType = "Crashdump";
++                    }
++                    else if (
++                        *entryTypePtr ==
++                        "xyz.openbmc_project.Dump.Entry.FaultLog.FaultDataType.CPER")
++                    {
++                        entryType = "CPER";
++                    }
++                }
++                else if (propertyMap.first == "PrimaryLogId")
++                {
++                    const std::string* primaryLogIdPtr =
++                        std::get_if<std::string>(&propertyMap.second);
++                    if (primaryLogIdPtr == nullptr)
++                    {
++                        messages::internalError(asyncResp->res);
++                        break;
++                    }
++                    primaryLogId = *primaryLogIdPtr;
++                }
++            }
++        }
+     }
+ }
+ 
+@@ -516,6 +556,8 @@ inline void
+             std::string originatorId;
+             log_entry::OriginatorTypes originatorType =
+                 log_entry::OriginatorTypes::Internal;
++            std::string primaryLogId;
++            std::string entryType;
+             nlohmann::json::object_t thisEntry;
+ 
+             std::string entryID = object.first.filename();
+@@ -526,7 +568,7 @@ inline void
+ 
+             parseDumpEntryFromDbusObject(object, dumpStatus, size, timestampUs,
+                                          originatorId, originatorType,
+-                                         asyncResp);
++                                         entryType, primaryLogId, asyncResp);
+ 
+             if (dumpStatus !=
+                     "xyz.openbmc_project.Common.Progress.OperationStatus.Completed" &&
+@@ -557,6 +599,27 @@ inline void
+                                                  "/attachment";
+                 thisEntry["AdditionalDataSizeBytes"] = size;
+             }
++            else if (dumpType == "FaultLog")
++            {
++                thisEntry["DiagnosticDataType"] = "OEM";
++                thisEntry["OEMDiagnosticDataType"] = "OpenBMC Fault Log";
++                thisEntry["EntryType"] = "Oem";
++
++                if (entryType == "CPER")
++                {
++                    thisEntry["AdditionalDataURI"] =
++                        "/redfish/v1/Systems/system/LogServices/" +
++                        primaryLogId;
++                    thisEntry["OemRecordFormat"] = "CPER";
++                }
++                else if (entryType == "Crashdump")
++                {
++                    thisEntry["AdditionalDataURI"] =
++                        "/redfish/v1/Systems/system/LogServices/Crashdump/Entries/" +
++                        primaryLogId;
++                    thisEntry["OemRecordFormat"] = "Crashdump";
++                }
++            }
+             else if (dumpType == "System")
+             {
+                 thisEntry["DiagnosticDataType"] = "OEM";
+@@ -615,10 +678,13 @@ inline void
+             std::string originatorId;
+             log_entry::OriginatorTypes originatorType =
+                 log_entry::OriginatorTypes::Internal;
++            std::string primaryLogId;
++            std::string entryType;
+ 
+             parseDumpEntryFromDbusObject(objectPath, dumpStatus, size,
+                                          timestampUs, originatorId,
+-                                         originatorType, asyncResp);
++                                         originatorType, entryType,
++                                         primaryLogId, asyncResp);
+ 
+             if (dumpStatus !=
+                     "xyz.openbmc_project.Common.Progress.OperationStatus.Completed" &&
+@@ -653,6 +719,28 @@ inline void
+                     entriesPath + entryID + "/attachment";
+                 asyncResp->res.jsonValue["AdditionalDataSizeBytes"] = size;
+             }
++            else if (dumpType == "FaultLog")
++            {
++                asyncResp->res.jsonValue["DiagnosticDataType"] = "OEM";
++                asyncResp->res.jsonValue["OEMDiagnosticDataType"] =
++                    "OpenBMC Fault Log";
++                asyncResp->res.jsonValue["EntryType"] = "Oem";
++
++                if (entryType == "CPER")
++                {
++                    asyncResp->res.jsonValue["AdditionalDataURI"] =
++                        "/redfish/v1/Systems/system/LogServices/" +
++                        primaryLogId;
++                    asyncResp->res.jsonValue["OemRecordFormat"] = "CPER";
++                }
++                else if (entryType == "Crashdump")
++                {
++                    asyncResp->res.jsonValue["AdditionalDataURI"] =
++                        "/redfish/v1/Systems/system/LogServices/Crashdump/Entries/" +
++                        primaryLogId;
++                    asyncResp->res.jsonValue["OemRecordFormat"] = "Crashdump";
++                }
++            }
+             else if (dumpType == "System")
+             {
+                 asyncResp->res.jsonValue["DiagnosticDataType"] = "OEM";
+@@ -2740,7 +2828,7 @@ inline void
+     else if (dumpType == "FaultLog")
+     {
+         dumpPath = "/redfish/v1/Managers/bmc/LogServices/FaultLog";
+-        overWritePolicy = "Unknown";
++        overWritePolicy = "WrapsWhenFull";
+         collectDiagnosticDataSupported = false;
+     }
+     else if (dumpType == "System")
+-- 
+2.34.1
+
