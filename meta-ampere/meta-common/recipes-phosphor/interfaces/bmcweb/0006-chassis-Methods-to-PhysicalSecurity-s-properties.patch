@@ -1,0 +1,149 @@
+From 855f4abd1edc0e495f4966bacb733ec7800778f4 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Wed, 19 Jul 2023 08:42:18 +0000
+Subject: [PATCH 06/12] chassis: Methods to PhysicalSecurity's properties
+
+This commit handles getting method to IntrusionSensorReArm property
+under PhysicalSecurity. Moreover, Redfish Data Model Specification says
+about IntrusionSensor that "If the IntrusionSensorReArm property
+contains Manual, a client may set this property to Normal to reset the
+physical security state". This will handle patching to IntrusionSensor
+under PhysicalSecurity.
+
+Change-Id: If50332a1e55f2bafcf395e0d313b7d58b35c55cd
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ redfish-core/lib/chassis.hpp | 78 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 77 insertions(+), 1 deletion(-)
+
+diff --git a/redfish-core/lib/chassis.hpp b/redfish-core/lib/chassis.hpp
+index 397e31cc..351159f9 100644
+--- a/redfish-core/lib/chassis.hpp
++++ b/redfish-core/lib/chassis.hpp
+@@ -34,6 +34,8 @@
+ #include <sdbusplus/unpack_properties.hpp>
+ 
+ #include <array>
++#include <memory>
++#include <string>
+ #include <string_view>
+ 
+ namespace redfish
+@@ -158,6 +160,29 @@ inline void getIntrusionByService(std::shared_ptr<bmcweb::AsyncResp> asyncResp,
+         });
+ }
+ 
++inline void
++    getIntrusionReArmByService(std::shared_ptr<bmcweb::AsyncResp> asyncResp,
++                               const std::string& service,
++                               const std::string& objPath)
++{
++    BMCWEB_LOG_DEBUG("Get intrusion rearm by service");
++
++    sdbusplus::asio::getProperty<std::string>(
++        *crow::connections::systemBus, service, objPath,
++        "xyz.openbmc_project.Chassis.Intrusion", "Rearm",
++        [asyncResp{std::move(asyncResp)}](const boost::system::error_code ec,
++                                          const std::string& value) {
++        if (ec)
++        {
++            BMCWEB_LOG_ERROR("DBUS error: failed to get property");
++            return;
++        }
++
++        asyncResp->res.jsonValue["PhysicalSecurity"]["IntrusionSensorReArm"] =
++            value;
++        });
++}
++
+ /**
+  * Retrieves physical security properties over dbus
+  */
+@@ -185,6 +210,8 @@ inline void
+             {
+                 const auto service = object.second.front();
+                 getIntrusionByService(asyncResp, service.first, object.first);
++                getIntrusionReArmByService(asyncResp, service.first,
++                                           object.first);
+                 return;
+             }
+         }
+@@ -643,6 +670,24 @@ inline void
+     getPhysicalSecurityData(asyncResp);
+ }
+ 
++inline void setIntrusionSensorByService(
++    const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
++    const std::string& service, const std::string& objPath,
++    const std::string& intrusionSensor)
++{
++    sdbusplus::asio::setProperty(
++        *crow::connections::systemBus, service, objPath,
++        "xyz.openbmc_project.Chassis.Intrusion", "Status", intrusionSensor,
++        [asyncResp](const boost::system::error_code& ec) {
++        if (ec)
++        {
++            BMCWEB_LOG_ERROR("DBUS error: failed to set property");
++            return;
++        }
++        messages::success(asyncResp->res);
++        });
++}
++
+ inline void
+     handleChassisPatch(App& app, const crow::Request& req,
+                        const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
+@@ -654,6 +699,7 @@ inline void
+     }
+     std::optional<bool> locationIndicatorActive;
+     std::optional<std::string> indicatorLed;
++    std::optional<std::string> intrusionSensor;
+ 
+     if (param.empty())
+     {
+@@ -662,11 +708,41 @@ inline void
+ 
+     if (!json_util::readJsonPatch(
+             req, asyncResp->res, "LocationIndicatorActive",
+-            locationIndicatorActive, "IndicatorLED", indicatorLed))
++            locationIndicatorActive, "IndicatorLED", indicatorLed,
++            "PhysicalSecurity/IntrusionSensor", intrusionSensor))
+     {
+         return;
+     }
+ 
++    if (intrusionSensor)
++    {
++        constexpr std::array<std::string_view, 1> interfaces = {
++            "xyz.openbmc_project.Chassis.Intrusion"};
++        dbus::utility::getSubTree(
++            "/xyz/openbmc_project", 0, interfaces,
++            [asyncResp, intrusionSensor](
++                const boost::system::error_code& ec,
++                const dbus::utility::MapperGetSubTreeResponse& subtree) {
++            if (ec)
++            {
++                BMCWEB_LOG_ERROR("DBUS error: no matched iface");
++                messages::internalError(asyncResp->res);
++                return;
++            }
++            // Iterate over all retrieved ObjectPaths.
++            for (const auto& object : subtree)
++            {
++                if (!object.second.empty())
++                {
++                    const auto service = object.second.front();
++                    setIntrusionSensorByService(asyncResp, service.first,
++                                                object.first, *intrusionSensor);
++                    return;
++                }
++            }
++            });
++    }
++
+     // TODO (Gunnar): Remove IndicatorLED after enough time has passed
+     if (!locationIndicatorActive && !indicatorLed)
+     {
+-- 
+2.34.1
+

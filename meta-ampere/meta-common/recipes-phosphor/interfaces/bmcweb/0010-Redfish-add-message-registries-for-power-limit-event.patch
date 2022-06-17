@@ -1,0 +1,58 @@
+From d89965af7542779f2b3ce8f9b6f126c30a24ac60 Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Fri, 12 May 2023 10:34:09 +0700
+Subject: [PATCH 10/12] Redfish: add message registries for power limit events
+
+Add message registries to handle total power consumption events:
+- Total power consumption exceeds the power limit.
+- Total power consumption drops below the power limit.
+
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+---
+ .../registries/openbmc_message_registry.hpp   | 30 +++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/redfish-core/include/registries/openbmc_message_registry.hpp b/redfish-core/include/registries/openbmc_message_registry.hpp
+index c82020b2..12f80496 100644
+--- a/redfish-core/include/registries/openbmc_message_registry.hpp
++++ b/redfish-core/include/registries/openbmc_message_registry.hpp
+@@ -2359,6 +2359,36 @@ constexpr std::array registry = {
+                      {},
+                      "None.",
+                  }},
++    MessageEntry{
++        "TotalPowerConsumptionDropBelowTheLimit",
++        {
++            "Indicate the total power consumption drops below the power limit",
++            "Total power consumption drops below power limit. "
++            "The total power consumption is %1, the power limit is %2.",
++            "OK",
++            2,
++            {
++                "number",
++                "number",
++            },
++            "None.",
++        }
++    },
++    MessageEntry{
++        "TotalPowerConsumptionExceedTheLimit",
++        {
++            "Indicate the total power consumption exceeds the power limit",
++            "Total power consumption exeeds power limit. "
++            "The total power consumption is %1, the power limit is %2.",
++            "Critical",
++            2,
++            {
++                "number",
++                "number",
++            },
++            "None.",
++        }
++    },
+     MessageEntry{
+         "VoltageRegulatorOverheated",
+         {
+-- 
+2.34.1
+
