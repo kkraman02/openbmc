@@ -1,0 +1,88 @@
+From e1bf8bb6a843a2a53d74d74f410b5fe053c2d222 Mon Sep 17 00:00:00 2001
+From: Troy Lee <troy_lee@aspeedtech.com>
+Date: Fri, 8 Sep 2023 11:49:58 +0800
+Subject: [PATCH] Fixes bmcweb crashed when mounting virtual media
+
+After upgrading jsnbd to meson.build, the nbd-proxy path will change from
+/usr/sbin to /usr/bin.
+- https://gerrit.openbmc.org/c/openbmc/jsnbd/+/65434
+- https://gerrit.openbmc.org/c/openbmc/openbmc/+/65466
+
+Error message:
+```
+bmcweb[220]: [DEBUG http_connection.hpp:561] 0x235bad0 Clearing response
+bmcweb[220]: [DEBUG http_response.hpp:181] 0x235dd90 Clearing response
+containers
+bmcweb[220]: [DEBUG http_connection.hpp:403] 0x235bad0 doReadHeaders
+bmcweb[220]: [DEBUG http_connection.hpp:71] 0x22c20c8 Connection open,
+total 8
+bmcweb[220]: [DEBUG http_connection.hpp:625] 0x23dc940 timer started
+[FAILED] Failed to start Wait for Network to be Configured.
+See 'systemctl status systemd-networkd-wait-online.service' for details.
+[  OK  ] Reached target Network is Online.
+         Starting System Logging Service...
+[  OK  ] Started System Logging Service.
+systemd-journald[160]: Received SIGTERM from PID 220 (bmcweb).
+systemd[1]: avahi-daemon.service: Deactivated successfully.
+systemd[1]: bmcweb.service: Main process exited, code=exited,
+status=255/EXCEPTION
+systemd[1]: bmcweb.service: Failed with result 'exit-code'.
+systemd[1]: bmcweb.service: Consumed 1.940s CPU time.
+systemd[1]: obmc-dump-monitor.service: Deactivated successfully.
+systemd[1]: phosphor-certificate-manager@authority.service: Deactivated
+successfully.
+```
+
+After this fix:
+```
+bmcweb[219]: [DEBUG http_connection.hpp:268] Setting completion handler
+bmcweb[219]: [DEBUG http_response.hpp:238] 0xfb23e0 setting completion
+handler
+bmcweb[219]: [DEBUG http_response.hpp:238] 0xfb23e0 setting completion
+handler
+bmcweb[219]: [DEBUG routing.hpp:601] Matched rule (upgrade) '/vm/0/0' 1
+/ 2
+bmcweb[219]: [DEBUG dbus_privileges.hpp:51] userName = root userRole =
+priv-admin
+bmcweb[219]: [DEBUG websocketrule.hpp:50] Websocket handles upgrade
+bmcweb[219]: [DEBUG websocket.hpp:78] Creating new connection 0xe641ec
+bmcweb[219]: [DEBUG websocket.hpp:89] starting connection 0xe641ec
+bmcweb[219]: [DEBUG http_response.hpp:223] 0xfb23e0 calling completion
+handler
+bmcweb[219]: [DEBUG http_response.hpp:226] 0xfb23e0 completion handler
+was valid
+bmcweb[219]: [DEBUG http_response.hpp:238] 0x108b008 setting completion
+handler
+bmcweb[219]: [DEBUG http_connection.hpp:81] 0x1088d48 Connection closed,
+total 8
+bmcweb[219]: [DEBUG websocket.hpp:226] Websocket accepted connection
+bmcweb[219]: [DEBUG vm_websocket.hpp:172] Connection 0xe641ec opened
+bmcweb[219]: [DEBUG vm_websocket.hpp:85] inputBuffer empty.  Bailing out
+bmcweb[219]: [DEBUG vm_websocket.hpp:94] Wrote 18bytes
+bmcweb[219]: [DEBUG vm_websocket.hpp:85] inputBuffer empty.  Bailing out
+bmcweb[219]: [DEBUG vm_websocket.hpp:125] Read done.  Read 26 bytes
+```
+
+Change-Id: Ic5dc3d0c32517add158d5354b712c166bc6bf204
+Signed-off-by: Troy Lee <troy_lee@aspeedtech.com>
+Signed-off-by: Vince Chang <vince.chang@vertiv.com>
+---
+ include/vm_websocket.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/vm_websocket.hpp b/include/vm_websocket.hpp
+index 1b06a93d..a8d6a149 100644
+--- a/include/vm_websocket.hpp
++++ b/include/vm_websocket.hpp
+@@ -56,7 +56,7 @@ class Handler : public std::enable_shared_from_this<Handler>
+     void connect()
+     {
+         std::error_code ec;
+-        proxy = boost::process::child("/usr/sbin/nbd-proxy", media,
++        proxy = boost::process::child("/usr/bin/nbd-proxy", media,
+                                       boost::process::std_out > pipeOut,
+                                       boost::process::std_in < pipeIn, ec);
+         if (ec)
+-- 
+2.25.1
+
