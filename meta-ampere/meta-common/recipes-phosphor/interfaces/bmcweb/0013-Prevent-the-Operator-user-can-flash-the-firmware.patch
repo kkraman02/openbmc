@@ -1,0 +1,31 @@
+From 69d0449678e6c97d5064f667da1c1c59115c2d86 Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Tue, 23 May 2023 16:14:15 +0000
+Subject: [PATCH] Prevent the Operator user can flash the firmware
+
+Operator users can login to WebUI and start firmware updates. Expect
+that only Administrator user can flash the firmware.
+This commit changes the UpdateService privilege from ConfigureComponents
+to ConfigureManager to fix the issue.
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+---
+ redfish-core/include/registries/privilege_registry.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/redfish-core/include/registries/privilege_registry.hpp b/redfish-core/include/registries/privilege_registry.hpp
+index 57c9e024..aefdbb88 100644
+--- a/redfish-core/include/registries/privilege_registry.hpp
++++ b/redfish-core/include/registries/privilege_registry.hpp
+@@ -1505,7 +1505,7 @@ const static auto& postTriggersCollection = privilegeSetConfigureManager;
+ const static auto& getUpdateService = privilegeSetLogin;
+ const static auto& headUpdateService = privilegeSetLogin;
+ const static auto& patchUpdateService = privilegeSetConfigureComponents;
+-const static auto& postUpdateService = privilegeSetConfigureComponents;
++const static auto& postUpdateService = privilegeSetConfigureManager;
+ const static auto& putUpdateService = privilegeSetConfigureComponents;
+ const static auto& deleteUpdateService = privilegeSetConfigureComponents;
+ 
+-- 
+2.25.1
+

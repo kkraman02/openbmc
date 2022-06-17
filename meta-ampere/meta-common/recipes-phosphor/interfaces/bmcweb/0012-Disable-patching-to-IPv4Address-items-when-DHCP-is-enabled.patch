@@ -1,0 +1,76 @@
+From f66aa17fd2dd8d3be172c169e87373f333ea4759 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Mon, 15 May 2023 06:34:15 +0000
+Subject: [PATCH] meta-ampere: bcmweb: Disable patching to IPv4Address
+items when DHCP is enabled
+
+In accordance with schema http://redfish.dmtf.org/schemas/v1/
+IPAddresses.json#/definitions/IPv4Address, some items in "IPv4Address"
+schema should be read-only when DHCPv4 is enabled in the interface. This
+commit disables patching to those items (Address, Gateway, SubnetMask)
+when the "DHCPEnabled" property in "DHCPv4" is true. This also affects
+when passing "DHCPEnabled" with true value together with "IPv4Address"
+items in the same redfish patch command. "IPv4StaticAddresses"
+implements the "IPv4Address" schema and is patch-able so should follow
+the rule.
+
+Tested:
+When "DHCPEnabled" is true, patching to Address, Gateway or SubnetMask of
+"IPv4Address" results in PropertyNotWritable error message.
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ redfish-core/lib/ethernet.hpp | 35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
+
+diff --git a/redfish-core/lib/ethernet.hpp b/redfish-core/lib/ethernet.hpp
+index 55ae50874b..5436f6a539 100644
+--- a/redfish-core/lib/ethernet.hpp
++++ b/redfish-core/lib/ethernet.hpp
+@@ -1896,18 +1896,33 @@ inline void requestEthernetInterfacesRoutes(App& app)
+             {
+                 handleMACAddressPatch(ifaceId, *macAddress, asyncResp);
+             }
+-
+             if (ipv4StaticAddresses)
+             {
+-                // TODO(ed) for some reason the capture of
+-                // ipv4Addresses above is returning a const value,
+-                // not a non-const value. This doesn't really work
+-                // for us, as we need to be able to efficiently move
+-                // out the intermedia nlohmann::json objects. This
+-                // makes a copy of the structure, and operates on
+-                // that, but could be done more efficiently
+-                nlohmann::json::array_t ipv4Static = *ipv4StaticAddresses;
+-                handleIPv4StaticPatch(ifaceId, ipv4Static, ipv4Data, asyncResp);
++                bool nextv4DHCPState = translateDhcpEnabledToBool(ethData.dhcpEnabled, true);
++                if (dhcpv4 && v4dhcpParms.dhcpv4Enabled)
++                {
++                    // If DHCPEnabled for IPv4 is also passed into the patch command,
++                    // take it into account
++                    nextv4DHCPState = *v4dhcpParms.dhcpv4Enabled;
++                }
++                if (nextv4DHCPState)
++                {
++                    // Avoid patching to IPv4StaticAddresses when is DHCPEnabled is true for IPv4
++                    messages::propertyNotWritable(asyncResp->res,
++                                              "IPv4StaticAddresses");
++                }
++                else
++                {
++                    // TODO(ed) for some reason the capture of
++                    // ipv4Addresses above is returning a const value,
++                    // not a non-const value. This doesn't really work
++                    // for us, as we need to be able to efficiently move
++                    // out the intermedia nlohmann::json objects. This
++                    // makes a copy of the structure, and operates on
++                    // that, but could be done more efficiently
++                    nlohmann::json::array_t ipv4Static = *ipv4StaticAddresses;
++                    handleIPv4StaticPatch(ifaceId, ipv4Static, ipv4Data, asyncResp);
++                }
+             }
+ 
+             if (staticNameServers)
+-- 
+2.25.1
+
