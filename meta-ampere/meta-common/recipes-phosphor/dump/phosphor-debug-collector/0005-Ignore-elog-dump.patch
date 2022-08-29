@@ -1,0 +1,59 @@
+From cc466a8dcc9bd0b7e1b1c55abb6dabc598b4fff5 Mon Sep 17 00:00:00 2001
+From: Quang Nguyen <quangnguyen@os.amperecomputing.com>
+Date: Tue, 28 Nov 2023 14:47:55 +0700
+Subject: [PATCH] Ignore elog dump to avoid kernel out-of-memory issue
+
+When receiving an elog event, phosphor-dump-manager will
+fork new processes to collect data and compress data for
+use when needed. But if an application somehow got issue
+and flood the elog events to phosphor-dump-manager,
+it will end up creating a fork bomb which creates a significant
+large amount of processes and consume all the system memory.
+It causes the kernel out-of-memory mechanism is triggered
+to kill processes and free up memory.
+
+This commit ignores the elog dump event when a dump is in process to
+avoid kernel out-of-memory issue.
+
+Tested:
+1. Write a scrip and send the below elog event continuously.
+        busctl call xyz.openbmc_project.Logging \
+        /xyz/openbmc_project/logging \
+        xyz.openbmc_project.Logging.Create Create ssa{ss} \
+        xyz.openbmc_project.Common.Error.InternalFailure \
+        xyz.openbmc_project.Logging.Entry.Level.Error 0
+2. Ensure that the kernel out-of-memory will not happen.
+
+Signed-off-by: Quang Nguyen <quangnguyen@os.amperecomputing.com>
+---
+ dump_manager_bmc.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/dump_manager_bmc.cpp b/dump_manager_bmc.cpp
+index 171a26cb..0df790d9 100644
+--- a/dump_manager_bmc.cpp
++++ b/dump_manager_bmc.cpp
+@@ -65,7 +65,8 @@ sdbusplus::message::object_path
+     std::string path = extractParameter<std::string>(
+         convertCreateParametersToString(CreateParameters::FilePath), params);
+ 
+-    if ((Manager::fUserDumpInProgress == true) && (dumpType == DumpTypes::USER))
++    if ((Manager::fUserDumpInProgress == true) &&
++            (dumpType == DumpTypes::USER || dumpType == DumpTypes::ELOG))
+     {
+         lg2::info("Another user initiated dump in progress");
+         elog<sdbusplus::xyz::openbmc_project::Common::Error::Unavailable>();
+@@ -100,7 +101,9 @@ sdbusplus::message::object_path
+         elog<InternalFailure>();
+     }
+ 
+-    if (dumpType == DumpTypes::USER)
++    //When a new dumpType is added, this if statement should be
++    //updated to avoid the kernel out-of-memory issue happen
++    if (dumpType == DumpTypes::USER || dumpType == DumpTypes::ELOG)
+     {
+         Manager::fUserDumpInProgress = true;
+     }
+-- 
+2.25.1
+
