@@ -1,0 +1,26 @@
+From 27459ddf16bcb4b52bbbd585a51143f23de69e85 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Fri, 15 Sep 2023 14:41:12 +0700
+Subject: [PATCH 5/5] add Ampere env
+
+Change-Id: I235f22e4cac184877e5fdda1c867079a6e44e63f
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ .env.ampere | 5 +++++
+ 1 file changed, 5 insertions(+)
+ create mode 100644 .env.ampere
+
+diff --git a/.env.ampere b/.env.ampere
+new file mode 100644
+index 0000000..7776d5d
+--- /dev/null
++++ b/.env.ampere
+@@ -0,0 +1,5 @@
++NODE_ENV=production
++VUE_APP_ENV_NAME="ampere"
++VUE_APP_COMPANY_NAME="ampere"
++VUE_APP_FAN_DATA_FROM_THERMAL_SUBSYSTEM="true"
++VUE_APP_POWERSUPPLY_DATA_FROM_POWER_SUBSYSTEM="true"
+-- 
+2.34.1
+
