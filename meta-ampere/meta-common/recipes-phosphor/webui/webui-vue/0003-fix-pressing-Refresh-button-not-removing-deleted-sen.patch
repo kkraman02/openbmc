@@ -1,0 +1,55 @@
+From 4e9af6961633600f83289a7cca12d118d6f3b8a8 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Fri, 14 Jul 2023 21:03:00 +0700
+Subject: [PATCH] fix pressing Refresh button not removing deleted sensors
+
+Issue: when clicking the Refresh button at top right corner of the
+WebUI, sensors that are removed from Redfish are not removed from the
+WebUI but still show with old sensor values.
+Root cause: current code keeps a list of sensors. Click on Refresh
+button just checks and updates sensors returned by Redfish, it does not
+check if sensors still present or not. This is incorrect for sensors on
+hot plug devices or PLDM sensors when the sensor source is not
+available. In this case, sensors are completely removed instead of just
+their values changed to n/a.
+Solution: Initialization an empty array sensor state to retrieve
+existing sensor data whenever loading sensors.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/store/modules/HardwareStatus/SensorsStore.js | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/store/modules/HardwareStatus/SensorsStore.js b/src/store/modules/HardwareStatus/SensorsStore.js
+index 5a237bd..32bf13b 100644
+--- a/src/store/modules/HardwareStatus/SensorsStore.js
++++ b/src/store/modules/HardwareStatus/SensorsStore.js
+@@ -13,11 +13,15 @@ const SensorsStore = {
+     setSensors: (state, sensors) => {
+       state.sensors = uniqBy([...sensors, ...state.sensors], 'name');
+     },
++    setSensorsDefault: (state) => {
++      state.sensors = [];
++    },
+   },
+   actions: {
+     async getAllSensors({ dispatch }) {
+       const collection = await dispatch('getChassisCollection');
+       if (!collection) return;
++      dispatch('resetSensors');
+       const promises = collection.reduce((acc, id) => {
+         acc.push(dispatch('getSensors', id));
+         acc.push(dispatch('getThermalSensors', id));
+@@ -34,6 +38,9 @@ const SensorsStore = {
+         )
+         .catch((error) => console.log(error));
+     },
++    async resetSensors({ commit }) {
++      commit('setSensorsDefault');
++    },
+     async getSensors({ commit }, id) {
+       const sensors = await api
+         .get(`${id}/Sensors`)
+-- 
+2.25.1
+
