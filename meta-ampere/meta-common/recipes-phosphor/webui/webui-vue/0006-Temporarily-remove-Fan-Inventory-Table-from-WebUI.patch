@@ -1,0 +1,83 @@
+From 025597427894fb0d19720b5cb667b2d7195aaa67 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Mon, 29 May 2023 08:50:07 +0000
+Subject: [PATCH] Temporarily remove Fan Inventory Table from WebUI
+
+Fan Inventory Table in OpenBMC WebUI is showing undesirable information
+(the fan sensors - pwm/tach are displayed, instead of the physical fans
+present in the board). The table is getting information from the old fan
+schema (deprecated in the future), and the new schema (shows correct
+info) is still under development. So temporarily removes the Table to
+avoid confusion.
+
+Tested:
+Login to WebUI -> Hardware Status -> Inventory and LEDs
+Result: No fan table is shown
+---
+ src/views/HardwareStatus/Inventory/Inventory.vue | 15 ---------------
+ 1 file changed, 15 deletions(-)
+
+diff --git a/src/views/HardwareStatus/Inventory/Inventory.vue b/src/views/HardwareStatus/Inventory/Inventory.vue
+index fcdbf8d..460dedc 100644
+--- a/src/views/HardwareStatus/Inventory/Inventory.vue
++++ b/src/views/HardwareStatus/Inventory/Inventory.vue
+@@ -34,9 +34,6 @@
+     <!-- DIMM slot table -->
+     <table-dimm-slot ref="dimms" />
+ 
+-    <!-- Fans table -->
+-    <table-fans ref="fans" />
+-
+     <!-- Power supplies table -->
+     <table-power-supplies ref="powerSupply" />
+ 
+@@ -54,7 +51,6 @@ import ServiceIndicator from './InventoryServiceIndicator';
+ import TableSystem from './InventoryTableSystem';
+ import TablePowerSupplies from './InventoryTablePowerSupplies';
+ import TableDimmSlot from './InventoryTableDimmSlot';
+-import TableFans from './InventoryTableFans';
+ import TableBmcManager from './InventoryTableBmcManager';
+ import TableChassis from './InventoryTableChassis';
+ import TableProcessors from './InventoryTableProcessors';
+@@ -72,7 +68,6 @@ export default {
+     TableDimmSlot,
+     TablePowerSupplies,
+     TableSystem,
+-    TableFans,
+     TableBmcManager,
+     TableChassis,
+     TableProcessors,
+@@ -114,12 +109,6 @@ export default {
+           href: '#dimms',
+           linkText: this.$t('pageInventory.dimmSlot'),
+         },
+-        {
+-          id: 'fans',
+-          dataRef: 'fans',
+-          href: '#fans',
+-          linkText: this.$t('pageInventory.fans'),
+-        },
+         {
+           id: 'powerSupply',
+           dataRef: 'powerSupply',
+@@ -158,9 +147,6 @@ export default {
+     const dimmSlotTablePromise = new Promise((resolve) => {
+       this.$root.$on('hardware-status-dimm-slot-complete', () => resolve());
+     });
+-    const fansTablePromise = new Promise((resolve) => {
+-      this.$root.$on('hardware-status-fans-complete', () => resolve());
+-    });
+     const powerSuppliesTablePromise = new Promise((resolve) => {
+       this.$root.$on('hardware-status-power-supplies-complete', () =>
+         resolve()
+@@ -184,7 +170,6 @@ export default {
+       bmcManagerTablePromise,
+       chassisTablePromise,
+       dimmSlotTablePromise,
+-      fansTablePromise,
+       powerSuppliesTablePromise,
+       processorsTablePromise,
+       serviceIndicatorPromise,
+-- 
+2.25.1
+

@@ -1,0 +1,30 @@
+From a6609dc879788ed6baaab2e35e9c51543c82074f Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Wed, 19 Apr 2023 11:35:42 +0700
+Subject: [PATCH] Fix Logout Button does not work in Safari
+
+The method router.go() does not work in Safari. This commit fixes
+the issue by changing the method router.go() to router.push() to
+navigate exactly.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/store/modules/Authentication/AuthenticanStore.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/store/modules/Authentication/AuthenticanStore.js b/src/store/modules/Authentication/AuthenticanStore.js
+index 02d6e63..a6de840 100644
+--- a/src/store/modules/Authentication/AuthenticanStore.js
++++ b/src/store/modules/Authentication/AuthenticanStore.js
+@@ -55,7 +55,7 @@ const AuthenticationStore = {
+           commit('setConsoleWindow', false);
+           commit('logout');
+         })
+-        .then(() => router.go('/login'))
++        .then(() => router.push('/login'))
+         .catch((error) => console.log(error));
+     },
+     getUserInfo(_, username) {
+-- 
+2.25.1
+

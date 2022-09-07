@@ -1,0 +1,44 @@
+From 364d2979983fa7a959284ab21e1161fc2fc6b409 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Mon, 13 Feb 2023 04:05:01 +0000
+Subject: [PATCH] Apply route restrictions by default
+
+https://gerrit.openbmc.org/c/openbmc/webui-vue/+/58883 configures the
+privilege for Intel platform only.
+This commit applies similar change to common code to work for other
+platforms.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/store/modules/GlobalStore.js | 2 +-
+ src/views/Login/Login.vue        | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/store/modules/GlobalStore.js b/src/store/modules/GlobalStore.js
+index 74eb1e80..5c85537b 100644
+--- a/src/store/modules/GlobalStore.js
++++ b/src/store/modules/GlobalStore.js
+@@ -40,7 +40,7 @@ const GlobalStore = {
+       : true,
+     username: localStorage.getItem('storedUsername'),
+     isAuthorized: true,
+-    userPrivilege: null,
++    userPrivilege: localStorage.getItem('storedUserPrivilege'),
+   },
+   getters: {
+     assetTag: (state) => state.assetTag,
+diff --git a/src/views/Login/Login.vue b/src/views/Login/Login.vue
+index 88d1c7db..3a5e40b0 100644
+--- a/src/views/Login/Login.vue
++++ b/src/views/Login/Login.vue
+@@ -135,6 +135,7 @@ export default {
+             this.$router.push('/');
+           }
+           if (RoleId) {
++            localStorage.setItem('storedUserPrivilege', RoleId);
+             this.$store.commit('global/setPrivilege', RoleId);
+           }
+         })
+-- 
+2.25.1
+
