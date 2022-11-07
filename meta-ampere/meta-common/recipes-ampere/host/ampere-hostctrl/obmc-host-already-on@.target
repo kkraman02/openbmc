@@ -4,3 +4,4 @@ Conflicts=obmc-chassis-poweroff@%i.target
 Conflicts=obmc-host-quiesce@%i.target
 Conflicts=ampere-host-force-reset@%i.service
 Conflicts=ampere-host-shutdown-ack@%i.service
+Conflicts=ampere-check-gpio-fault@%i.service

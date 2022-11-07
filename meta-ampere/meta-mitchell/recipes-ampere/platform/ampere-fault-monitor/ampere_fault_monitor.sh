@@ -11,6 +11,10 @@ source /usr/sbin/gpio-lib.sh
 
     overtemp_fault_flag='/tmp/fault_overtemp'
 
+# gpio fault
+	gpio_fault="false"
+	gpio_fault_flag="/tmp/gpio_fault"
+
 # fan variables
 	fan_failed="false"
 	fan_failed_flag='/tmp/fan_failed'
@@ -49,8 +53,11 @@ check_fan_failed() {
 
 turn_on_off_fan_fault_led() {
 	# Control fan fault led via CPLD's I2C at slave address 0x22, I2C16.
-	# Config port direction to output
-	i2cset -f -y $led_bus $led_addr $led_port0_config 0
+	# Get Port0 value
+	p0_val=$(i2cget -f -y $led_bus $led_addr $led_port0_config)
+	p0_val=$(("$p0_val" & ~1))
+	# Config CPLD's IOepx Port0[0] from input to output, clear IOepx Port0[0].
+	i2cset -f -y $led_bus $led_addr $led_port0_config $p0_val
 
 	# Get led value
 	led_st=$(i2cget -f -y $led_bus $led_addr $led_port0_output)
@@ -67,8 +74,11 @@ turn_on_off_fan_fault_led() {
 
 turn_on_off_psu_fault_led() {
 	# Control psu fault led via CPLD's I2C at slave address 0x22, I2C16.
-	# Config port direction to output
-	i2cset -f -y $led_bus $led_addr $led_port0_config 0
+	# Get Port1 value
+	p1_val=$(i2cget -f -y $led_bus $led_addr $led_port0_config)
+	p1_val=$(("$p1_val" & ~2))
+	# Config CPLD's IOepx Port0[1] from input to output, clear IOepx Port0[1].
+	i2cset -f -y $led_bus $led_addr $led_port0_config $p1_val
 
 	# Get led value
 	led_st=$(i2cget -f -y $led_bus $led_addr $led_port0_output)
@@ -108,13 +118,9 @@ check_psu_failed() {
 		# PSU0 presence, monitor the PSUs using pmbus, check the STATUS_WORD
 		psu0_value=$(i2cget -f -y $psu_bus $psu0_addr $status_word_cmd w)
 		psu0_bit_fault=$(($psu0_value & $psu_fault_bitmask))
-		if [ "$psu0_bit_fault" != "0" ]; then
-			echo "Error: PSU0 failed"
-		else
+		if [ "$psu0_bit_fault" == "0" ]; then
 			psu0_failed="false"
 		fi
-	else
-		echo "Error: PSU0 is not presence"
 	fi
 
 	psu1_presence=$(gpio_name_get presence-ps1)
@@ -123,13 +129,9 @@ check_psu_failed() {
 		# PSU1 presence, monitor the PSUs using pmbus, check the STATUS_WORD
 		psu1_value=$(i2cget -f -y $psu_bus $psu1_addr $status_word_cmd w)
 		psu1_bit_fault=$(($psu1_value & $psu_fault_bitmask))
-		if [ "$psu1_bit_fault" != "0" ]; then
-			echo "Error: PSU1 failed"
-		else
+		if [ "$psu1_bit_fault" == "0" ]; then
 			psu1_failed="false"
 		fi
-	else
-		echo "Error: PSU1 is not presence"
 	fi
 
 	if [ "$psu0_failed" == "true" ] || [ "$psu1_failed" == "true" ]; then
@@ -163,10 +165,19 @@ check_overtemp_occured() {
 }
 
 
+check_gpio_fault() {
+    if [[ -f $gpio_fault_flag ]]; then
+        echo "GPIO fault event(s) occured, turn on fault LED"
+        gpio_fault="true"
+    else
+        gpio_fault="false"
+    fi
+}
 
 check_fault() {
 	if [[ "$fan_failed" == "true" ]] || [[ "$psu_failed" == "true" ]] \
-                                    || [[ "$overtemp_occured" == "true" ]]; then
+                                    || [[ "$overtemp_occured" == "true" ]] \
+                                    || [[ "$gpio_fault" == "true" ]]; then
 		fault="true"
 	else
 		fault="false"
@@ -193,6 +204,7 @@ do
 	check_psu_failed
 
 	check_overtemp_occured
+	check_gpio_fault
 	# Check fault to update fail
 	check_fault
 	control_sys_fault_led
