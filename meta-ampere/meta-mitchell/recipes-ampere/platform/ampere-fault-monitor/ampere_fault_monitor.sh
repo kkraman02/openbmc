@@ -11,6 +11,10 @@ source /usr/sbin/gpio-lib.sh
 
     overtemp_fault_flag='/tmp/fault_overtemp'
 
+# gpio fault
+	gpio_fault="false"
+	gpio_fault_flag="/tmp/gpio_fault"
+
 # fan variables
 	fan_failed="false"
 	fan_failed_flag='/tmp/fan_failed'
@@ -163,10 +167,19 @@ check_overtemp_occured() {
 }
 
 
+check_gpio_fault() {
+    if [[ -f $gpio_fault_flag ]]; then
+        echo "GPIO fault event(s) occured, turn on fault LED"
+        gpio_fault="true"
+    else
+        gpio_fault="false"
+    fi
+}
 
 check_fault() {
 	if [[ "$fan_failed" == "true" ]] || [[ "$psu_failed" == "true" ]] \
-                                    || [[ "$overtemp_occured" == "true" ]]; then
+                                    || [[ "$overtemp_occured" == "true" ]] \
+                                    || [[ "$gpio_fault" == "true" ]]; then
 		fault="true"
 	else
 		fault="false"
@@ -193,6 +206,7 @@ do
 	check_psu_failed
 
 	check_overtemp_occured
+	check_gpio_fault
 	# Check fault to update fail
 	check_fault
 	control_sys_fault_led
