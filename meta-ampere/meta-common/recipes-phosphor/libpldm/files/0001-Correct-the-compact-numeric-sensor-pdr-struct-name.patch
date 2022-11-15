@@ -1,0 +1,37 @@
+From d2972ef420bc12135e04a5f1105c761d608274a3 Mon Sep 17 00:00:00 2001
+From: Thu Nguyen <thu@os.amperecomputing.com>
+Date: Thu, 12 Jan 2023 13:33:47 +0700
+Subject: [PATCH] Correct the compact numeric sensor pdr struct name
+
+Correct pldm_compact_nummeric_sensor_pdr to
+pldm_compact_numeric_sensor_pdr as section 28.25 Compact Numeric
+Sensor PDR in DSP0248.1.2.2.
+
+Signed-off-by: Thu Nguyen <thu@os.amperecomputing.com>
+Change-Id: Ib4e47744e164424d94119d55c4ae5cd1b3e37426
+---
+ include/libpldm/platform.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/libpldm/platform.h b/include/libpldm/platform.h
+index 5e1a3dc..7913ef3 100644
+--- a/include/libpldm/platform.h
++++ b/include/libpldm/platform.h
+@@ -522,11 +522,11 @@ struct pldm_state_effecter_pdr {
+ 	uint8_t possible_states[1];
+ } __attribute__((packed));
+ 
+-/** @struct pldm_compact_nummeric_sensor_pdr
++/** @struct pldm_compact_numeric_sensor_pdr
+  *
+- *  Structure representing PLDM compact nummeric sensor PDR
++ *  Structure representing PLDM compact numeric sensor PDR
+  */
+-struct pldm_compact_nummeric_sensor_pdr {
++struct pldm_compact_numeric_sensor_pdr {
+ 	struct pldm_pdr_hdr hdr;
+ 	uint16_t terminus_handle;
+ 	uint16_t sensor_id;
+-- 
+2.17.1
+

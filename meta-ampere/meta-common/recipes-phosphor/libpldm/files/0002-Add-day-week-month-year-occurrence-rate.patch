@@ -1,0 +1,34 @@
+From 0970e332b46a3096267e15686c0972404205ae96 Mon Sep 17 00:00:00 2001
+From: Thu Nguyen <thu@os.amperecomputing.com>
+Date: Thu, 12 Jan 2023 13:28:58 +0700
+Subject: [PATCH] Add day/week/month/year occurrence rate
+
+Add day/week/month/year occurrence rate enum as section
+28.11 in DSP0248.1.2.2.
+
+Signed-off-by: Thu Nguyen <thu@os.amperecomputing.com>
+Change-Id: I6aeb920001ed2c15fff2aeae74f227c125077d49
+---
+ include/libpldm/platform.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/libpldm/platform.h b/include/libpldm/platform.h
+index 7913ef3..c4b62f5 100644
+--- a/include/libpldm/platform.h
++++ b/include/libpldm/platform.h
+@@ -393,7 +393,11 @@ enum pldm_occurrence_rate {
+ 	PLDM_RATE_UNIT_PER_MILLI_SECOND,
+ 	PLDM_RATE_UNIT_PER_SECOND,
+ 	PLDM_RATE_UNIT_PER_MINUTE,
+-	PLDM_RATE_UNIT_PER_HOUR
++	PLDM_RATE_UNIT_PER_HOUR,
++	PLDM_RATE_UNIT_PER_DAY,
++	PLDM_RATE_UNIT_PER_WEEK,
++	PLDM_RATE_UNIT_PER_MONTH,
++	PLDM_RATE_UNIT_PER_YEAR
+ };
+ 
+ /** @brief PLDM respository state */
+-- 
+2.17.1
+
