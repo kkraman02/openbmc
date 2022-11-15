@@ -1,0 +1,53 @@
+From 4b734fee706b9f513af92c41b6b01008e66bc69b Mon Sep 17 00:00:00 2001
+From: Thu Nguyen <thu@os.amperecomputing.com>
+Date: Wed, 2 Aug 2023 08:52:56 +0700
+Subject: [PATCH 1/2] transport: Correct comparison in while loop condition
+
+With the latest libpldm code version 0.4, sometimes the calling
+`pldmtool platform GetPDR` command while polling the sensors will be
+ended with the error `Failed to receive RC = 8`. This error code is
+printed when the `pldm_transport_send_recv_msg()` responses
+PLDM_REQUESTER_RECV_FAIL when it exits the while loop.
+The while loop will continue while the now time is still not later
+than the end time. The comparison should be corrected.
+
+Tested:
+1. Call "pldmtool platform GetPDR" while reading the sensors.
+2. No "Failed to receive RC = 8".
+
+Fixes: abaf61f45e2a ("transport: Prevent sticking in waiting for response")
+Signed-off-by: Thu Nguyen <thu@os.amperecomputing.com>
+Change-Id: If1829a35d755d68fd6a18d8e6ad54d1648ccc4ce
+---
+ CHANGELOG.md              | 1 +
+ src/transport/transport.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index d52a424..6c98362 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -20,6 +20,7 @@ Change categories:
+ ### Fixed
+ 
+ 1. requester: Fix response buffer cast in pldm_send_recv()
++2. transport: Correct comparison in while loop condition
+ 
+ ## [0.4.0] - 2023-07-14
+ 
+diff --git a/src/transport/transport.c b/src/transport/transport.c
+index 21fb878..c552150 100644
+--- a/src/transport/transport.c
++++ b/src/transport/transport.c
+@@ -203,7 +203,7 @@ pldm_transport_send_recv_msg(struct pldm_transport *transport, pldm_tid_t tid,
+ 		if (ret < 0) {
+ 			return PLDM_REQUESTER_POLL_FAIL;
+ 		}
+-	} while (!timercmp(&now, &end, <));
++	} while (timercmp(&now, &end, <));
+ 
+ 	return PLDM_REQUESTER_RECV_FAIL;
+ }
+-- 
+2.34.1
+
