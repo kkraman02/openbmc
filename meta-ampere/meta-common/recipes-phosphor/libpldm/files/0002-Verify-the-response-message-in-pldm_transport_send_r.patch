@@ -1,0 +1,57 @@
+From 1ec9d4ad36748400df22adbf72eceabb264ae28b Mon Sep 17 00:00:00 2001
+From: Thu Nguyen <thu@os.amperecomputing.com>
+Date: Sun, 28 May 2023 09:16:46 +0700
+Subject: [PATCH] Verify the response message in pldm_transport_send_recv_msg
+
+pldm_transport_send_recv_msg does not verify the match of a response
+message with the request message. This can cause the PLDM command of
+the pldmtool receives the response message of the other pldm command
+from other services. The pldm_transport_send_recv_msg method should
+compare the instanceId of the request and response message to verify
+the matching.
+
+Tested:
+1. Run pldmtool while pldmd service continuously polls multiple pldm
+sensors.
+2. The pldmtool should not be failed with PLDM_ERROR_INVALID_LENGTH
+error.
+
+Signed-off-by: Thu Nguyen <thu@os.amperecomputing.com>
+---
+ src/transport/transport.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/transport/transport.c b/src/transport/transport.c
+index 52cc465..6875ff8 100644
+--- a/src/transport/transport.c
++++ b/src/transport/transport.c
+@@ -164,8 +164,12 @@ pldm_transport_send_recv_msg(struct pldm_transport *transport, pldm_tid_t tid,
+ 	struct timeval now;
+ 	struct timeval end;
+ 	pldm_requester_rc_t rc;
++	uint8_t req_instance_id = 0;
+ 	int ret;
+ 
++	struct pldm_msg_hdr *hdr = (struct pldm_msg_hdr *)pldm_req_msg;
++	req_instance_id = hdr->instance_id;
++
+ 	if (!resp_msg_len) {
+ 		return PLDM_REQUESTER_INVALID_SETUP;
+ 	}
+@@ -197,7 +201,12 @@ pldm_transport_send_recv_msg(struct pldm_transport *transport, pldm_tid_t tid,
+ 		rc = pldm_transport_recv_msg(transport, tid, pldm_resp_msg,
+ 					     resp_msg_len);
+ 		if (rc == PLDM_REQUESTER_SUCCESS) {
+-			return rc;
++			struct pldm_msg_hdr *res_hdr =
++                (struct pldm_msg_hdr *)(*pldm_resp_msg);
++			if (res_hdr->instance_id == req_instance_id) {
++				return rc;
++			}
++			rc = PLDM_REQUESTER_INSTANCE_ID_MISMATCH;
+ 		}
+ 
+ 		ret = clock_gettimeval(CLOCK_MONOTONIC, &now);
+-- 
+2.17.1
+
