@@ -9,6 +9,11 @@ spi_lock="/run/platform/spi.lock"
 spi_lock_dir="/run/platform"
 
 bind_aspeed_smc_driver() {
+	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
+	if [ -n "$HOST_MTD" ]; then
+		return 0
+	fi
+	
 	if [ -f "${spi_lock}" ]; then
 		pid=$1
 		pid_lock=$(cat "${spi_lock}")
@@ -23,7 +28,7 @@ bind_aspeed_smc_driver() {
 	sleep 0.1
 	echo "Bind the ASpeed SMC driver"
 	echo "${spi_address}" > "${spi_bind}"  2>/dev/null
-	# Check the HNOR partition available
+	# Check the PNOR partition available
 	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
 	if [ -z "$HOST_MTD" ]; then
 		echo "${spi_address}" > "${spi_unbind}"
@@ -61,7 +66,7 @@ unbind_aspeed_smc_driver() {
 
 	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
 	if [ -n "$HOST_MTD" ]; then
-		# If the HNOR partition is available, then unbind driver
+		# If the PNOR partition is available, then unbind driver
 		# BMC access SPI-NOR resource
 		gpioset $(gpiofind spi0-program-sel)=1
 		sleep 0.1
