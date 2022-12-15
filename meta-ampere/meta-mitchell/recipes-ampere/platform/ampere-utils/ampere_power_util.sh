@@ -107,6 +107,21 @@ force_reset() {
 	gpio_name_set host0-sysreset-n 1
 }
 
+wait_bert_complete() {
+	# Wait maximum 30 seconds for BERT completed
+	cnt=10
+	while [ $cnt -gt 0 ]
+	do
+		bert_done=$(busctl get-property com.ampere.RAS.Trigger /com/ampere/crashcapture/trigger com.ampere.CrashCapture.Trigger TriggerActions | cut -d"." -f6)
+		if ! [ "$bert_done" == "Done\"" ]; then
+			sleep 3
+			cnt=$((cnt - 1))
+		else
+			break
+		fi
+	done
+}
+
 host_reboot_wa() {
     busctl set-property xyz.openbmc_project.State.Chassis \
         /xyz/openbmc_project/state/chassis0 xyz.openbmc_project.State.Chassis \
@@ -120,6 +135,13 @@ host_reboot_wa() {
         sleep 2
     done
     echo "The power is already Off."
+
+    bert_trigger=$(busctl get-property com.ampere.RAS.Trigger /com/ampere/ras/trigger com.ampere.RAS.Trigger TriggerActions | cut -d"." -f6)
+    if [ "$bert_trigger" == "Bert\"" ]; then
+       echo "BERT is triggered."
+       # Wait until RAS BERT process completed
+       wait_bert_complete
+    fi
 
     busctl set-property xyz.openbmc_project.State.Host \
         /xyz/openbmc_project/state/host0 xyz.openbmc_project.State.Host \
