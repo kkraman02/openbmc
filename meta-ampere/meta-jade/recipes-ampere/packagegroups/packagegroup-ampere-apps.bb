@@ -41,6 +41,7 @@ RDEPENDS:${PN}-system = " \
         smbios-mdr \
         ac01-openocd \
         bootstrap-account \
+        hostfw-revision-recover \
         "
 
 SUMMARY:${PN}-flash = "Ampere Flash"
