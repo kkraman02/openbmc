@@ -36,6 +36,7 @@ SUMMARY:${PN}-system = "Ampere System"
 RDEPENDS:${PN}-system = " \
                          smbios-mdr \
                          bootstrap-account \
+                         hostfw-revision-recover \
                          libmctp \
                          pldm \
                         "
