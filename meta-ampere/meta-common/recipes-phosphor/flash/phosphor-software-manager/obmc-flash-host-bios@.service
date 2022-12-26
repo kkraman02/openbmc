@@ -1,5 +1,9 @@
 [Unit]
 Description=Ampere service for flashing the Host firmware image
+Wants=prevent-reboot-actions.service
+After=prevent-reboot-actions.service
+Wants=allow-reboot-actions.service
+Before=allow-reboot-actions.service
 
 [Service]
 Type=oneshot

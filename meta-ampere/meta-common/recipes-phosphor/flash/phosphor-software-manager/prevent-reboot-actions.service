@@ -1,0 +1,6 @@
+[Unit]
+Description=Ampere service to prevent reboot actions
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/host_power_control_flashing.sh reboot false
