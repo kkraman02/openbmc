@@ -1,0 +1,6 @@
+[Unit]
+Description=Ampere service to prevent reboot actions
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ampere_power_control_lock.sh reboot false
