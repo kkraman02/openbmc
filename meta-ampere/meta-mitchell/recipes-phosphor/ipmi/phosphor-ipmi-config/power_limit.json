@@ -1,0 +1,33 @@
+{
+  "Description": "The Power Limit configuration for SoC/DIMM",
+  "SoC":
+  {
+    "Description": "SoC power limit configuration, it is using pldm method",
+    "pldm": 
+    [
+      {
+        "objectPath": "/xyz/openbmc_project/sensors/power/S0_PLimit",
+        "requiredFlag": true
+      },
+      {
+        "objectPath": "/xyz/openbmc_project/sensors/power/S1_PLimit",
+        "requiredFlag": false
+      }
+    ]
+  },
+  "DRAM":
+  {
+    "Description": "DRAM Max Throttle Enable, it is using pldm method",
+    "pldm":
+    [
+      {
+        "objectPath": "/xyz/openbmc_project/sensors/oem/S0_DRAM_MThrotEn",
+        "requiredFlag": true
+      },
+      {
+        "objectPath": "/xyz/openbmc_project/sensors/oem/S1_DRAM_MThrotEn",
+        "requiredFlag": false
+      }
+    ]
+  }
+}
