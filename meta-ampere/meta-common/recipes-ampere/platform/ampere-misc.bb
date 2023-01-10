@@ -41,5 +41,6 @@ SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "nmi-manager", "
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "state-logger", "xyz.openbmc_project.state_logger.service", "", d)}"
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "mctp-ctrl", " xyz.openbmc_project.AmpereMctpCtrl.service", "", d)}"
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager", " xyz.openbmc_project.power.manager.service", "", d)}"
+SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager", " power-cap-action-oem.service", "", d)}"
 
 FILES:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager"," ${datadir}/power-manager/power-manager-cfg.json", "", d)}"
