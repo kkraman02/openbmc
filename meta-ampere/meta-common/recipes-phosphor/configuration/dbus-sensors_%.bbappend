@@ -7,6 +7,7 @@ SRC_URI += " \
             file://0004-adcsensor-Disable-io_uring-build.patch \
             file://0005-chassisintrusionsensor-hwmon-adding.patch \
             file://0006-chassisintrusionsensor-add-ReArm-property.patch \
+            file://0007-amperecpu-Fix-all-S1-sensors-are-disable.patch \
            "
 
 PACKAGECONFIG[amperecpusensor] = "-Dampere-cpu=enabled, -Dampere-cpu=disabled"
