@@ -1,0 +1,33 @@
+From 2f7d4ff2b4f2fdd6ef1ef78bd8c78388cec4b2e4 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Tue, 27 Dec 2022 09:20:21 +0000
+Subject: [PATCH] UserManagement: fix incorrect max failed login attempts
+
+It is expected for WebUI  "Account policy settings" -> "Max failed login
+attempts Value" to display the "deny" parameter from
+/etc/pam.d/common-auth. However, the current WebUI displays 0 instead.
+This commit fixes the issue by adding code to load the deny value
+/etc/pam.d/common-auth.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/views/SecurityAndAccess/UserManagement/ModalSettings.vue | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/views/SecurityAndAccess/UserManagement/ModalSettings.vue b/src/views/SecurityAndAccess/UserManagement/ModalSettings.vue
+index 0f05123..c7d7d94 100644
+--- a/src/views/SecurityAndAccess/UserManagement/ModalSettings.vue
++++ b/src/views/SecurityAndAccess/UserManagement/ModalSettings.vue
+@@ -172,6 +172,9 @@ export default {
+       },
+     },
+   },
++  mounted() {
++    this.resetForm();
++  },
+   methods: {
+     handleSubmit() {
+       this.$v.$touch();
+-- 
+2.25.1
+
