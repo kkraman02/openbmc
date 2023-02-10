@@ -1,0 +1,280 @@
+From ac2328dbd60e6677cb888a61fd0a55091e8131e3 Mon Sep 17 00:00:00 2001
+From: Damian Celico <damianx.celico@intel.com>
+Date: Thu, 24 Nov 2022 02:00:53 +0100
+Subject: [PATCH] Added route restrictions based on user privilege
+
+This commit allows us to add 'exclusiveToRoles' field to
+route config files, with the list of roles that can access
+this resource, if needed. In this case, only Administrator
+can access Virtual-Media page, and it is blocked for other
+users.
+
+Signed-off-by: Sivaprabu Ganesan <sivaprabug@ami.com>
+Change-Id: Ibcee18bd92d97c34414ecaf2caf6af28070c5538
+---
+ src/components/AppHeader/AppHeader.vue            |  3 +++
+ src/components/AppNavigation/AppNavigation.vue    | 15 ++++++++++++++-
+ src/env/components/AppNavigation/intel.js         |  8 ++++++++
+ src/env/router/intel.js                           |  8 ++++++++
+ src/router/index.js                               | 12 +++++++++++-
+ .../modules/Authentication/AuthenticanStore.js    |  6 +++---
+ src/store/modules/GlobalStore.js                  |  5 +++++
+ src/views/Login/Login.vue                         | 12 ++++++------
+ tests/unit/AppNavigation.spec.js                  | 13 +++++++++++--
+ 9 files changed, 69 insertions(+), 13 deletions(-)
+
+diff --git a/src/components/AppHeader/AppHeader.vue b/src/components/AppHeader/AppHeader.vue
+index 84e4588..a198495 100644
+--- a/src/components/AppHeader/AppHeader.vue
++++ b/src/components/AppHeader/AppHeader.vue
+@@ -155,6 +155,9 @@ export default {
+     isAuthorized() {
+       return this.$store.getters['global/isAuthorized'];
+     },
++    userPrivilege() {
++      return this.$store.getters['global/userPrivilege'];
++    },
+     serverStatus() {
+       return this.$store.getters['global/serverStatus'];
+     },
+diff --git a/src/components/AppNavigation/AppNavigation.vue b/src/components/AppNavigation/AppNavigation.vue
+index acfabe7..a5f8105 100644
+--- a/src/components/AppNavigation/AppNavigation.vue
++++ b/src/components/AppNavigation/AppNavigation.vue
+@@ -29,7 +29,7 @@
+               <b-collapse :id="navItem.id" tag="ul" class="nav-item__nav">
+                 <li class="nav-item">
+                   <router-link
+-                    v-for="(subNavItem, i) of navItem.children"
++                    v-for="(subNavItem, i) of filteredNavItem(navItem.children)"
+                     :key="i"
+                     :to="subNavItem.route"
+                     :data-test-id="`nav-item-${subNavItem.id}`"
+@@ -67,6 +67,7 @@ export default {
+   data() {
+     return {
+       isNavigationOpen: false,
++      currentUserRole: null,
+     };
+   },
+   watch: {
+@@ -78,12 +79,24 @@ export default {
+     },
+   },
+   mounted() {
++    this.getPrivilege();
+     this.$root.$on('toggle-navigation', () => this.toggleIsOpen());
+   },
+   methods: {
+     toggleIsOpen() {
+       this.isNavigationOpen = !this.isNavigationOpen;
+     },
++    getPrivilege() {
++      this.currentUserRole = this.$store?.getters['global/userPrivilege'];
++    },
++    filteredNavItem(navItem) {
++      if (this.currentUserRole) {
++        return navItem.filter(({ exclusiveToRoles }) => {
++          if (!exclusiveToRoles?.length) return true;
++          return exclusiveToRoles.includes(this.currentUserRole);
++        });
++      } else return navItem;
++    },
+   },
+ };
+ </script>
+diff --git a/src/env/components/AppNavigation/intel.js b/src/env/components/AppNavigation/intel.js
+index 3fe0ad1..9cd1d27 100644
+--- a/src/env/components/AppNavigation/intel.js
++++ b/src/env/components/AppNavigation/intel.js
+@@ -7,6 +7,13 @@ import IconSecurity from '@carbon/icons-vue/es/security/16';
+ import IconChevronUp from '@carbon/icons-vue/es/chevron--up/16';
+ import IconDataBase from '@carbon/icons-vue/es/data--base--alt/16';
+ 
++const roles = {
++  administrator: 'Administrator',
++  operator: 'Operator',
++  readonly: 'ReadOnly',
++  noaccess: 'NoAccess',
++};
++
+ const AppNavigationMixin = {
+   components: {
+     iconOverview: IconDashboard,
+@@ -95,6 +102,7 @@ const AppNavigationMixin = {
+               id: 'virtual-media',
+               label: this.$t('appNavigation.virtualMedia'),
+               route: '/operations/virtual-media',
++              exclusiveToRoles: [roles.administrator],
+             },
+           ],
+         },
+diff --git a/src/env/router/intel.js b/src/env/router/intel.js
+index fd8ed77..b6ce0ad 100644
+--- a/src/env/router/intel.js
++++ b/src/env/router/intel.js
+@@ -27,6 +27,13 @@ import VirtualMedia from '@/views/Operations/VirtualMedia';
+ import Power from '@/views/ResourceManagement/Power';
+ import i18n from '@/i18n';
+ 
++const roles = {
++  administrator: 'Administrator',
++  operator: 'Operator',
++  readonly: 'ReadOnly',
++  noaccess: 'NoAccess',
++};
++
+ const routes = [
+   {
+     path: '/login',
+@@ -233,6 +240,7 @@ const routes = [
+         component: VirtualMedia,
+         meta: {
+           title: i18n.t('appPageTitle.virtualMedia'),
++          exclusiveToRoles: [roles.administrator],
+         },
+       },
+       {
+diff --git a/src/router/index.js b/src/router/index.js
+index 3cd5226..57e1fd9 100644
+--- a/src/router/index.js
++++ b/src/router/index.js
+@@ -8,7 +8,6 @@ import store from '../store';
+ import routes from './routes';
+ 
+ Vue.use(VueRouter);
+-
+ const router = new VueRouter({
+   base: process.env.BASE_URL,
+   routes,
+@@ -16,8 +15,19 @@ const router = new VueRouter({
+ });
+ 
+ router.beforeEach((to, from, next) => {
++  let currentUserRole = store.getters['global/userPrivilege'];
+   if (to.matched.some((record) => record.meta.requiresAuth)) {
+     if (store.getters['authentication/isLoggedIn']) {
++      if (to.meta.exclusiveToRoles) {
++        // The privilege for the specific router was verified using the
++        // exclusiveToRoles roles in the router.
++        if (currentUserRole == to.meta.exclusiveToRoles) {
++          next();
++        } else {
++          next('*');
++        }
++        return;
++      }
+       next();
+       return;
+     }
+diff --git a/src/store/modules/Authentication/AuthenticanStore.js b/src/store/modules/Authentication/AuthenticanStore.js
+index 07d5ee8..c5fcabc 100644
+--- a/src/store/modules/Authentication/AuthenticanStore.js
++++ b/src/store/modules/Authentication/AuthenticanStore.js
+@@ -52,10 +52,10 @@ const AuthenticationStore = {
+         .then(() => router.go('/login'))
+         .catch((error) => console.log(error));
+     },
+-    checkPasswordChangeRequired(_, username) {
+-      api
++    getUserInfo(_, username) {
++      return api
+         .get(`/redfish/v1/AccountService/Accounts/${username}`)
+-        .then(({ data: { PasswordChangeRequired } }) => PasswordChangeRequired)
++        .then(({ data }) => data)
+         .catch((error) => console.log(error));
+     },
+     resetStoreState({ state }) {
+diff --git a/src/store/modules/GlobalStore.js b/src/store/modules/GlobalStore.js
+index 95d7a08..74eb1e8 100644
+--- a/src/store/modules/GlobalStore.js
++++ b/src/store/modules/GlobalStore.js
+@@ -40,6 +40,7 @@ const GlobalStore = {
+       : true,
+     username: localStorage.getItem('storedUsername'),
+     isAuthorized: true,
++    userPrivilege: null,
+   },
+   getters: {
+     assetTag: (state) => state.assetTag,
+@@ -51,6 +52,7 @@ const GlobalStore = {
+     isUtcDisplay: (state) => state.isUtcDisplay,
+     username: (state) => state.username,
+     isAuthorized: (state) => state.isAuthorized,
++    userPrivilege: (state) => state.userPrivilege,
+   },
+   mutations: {
+     setAssetTag: (state, assetTag) => (state.assetTag = assetTag),
+@@ -70,6 +72,9 @@ const GlobalStore = {
+         state.isAuthorized = true;
+       }, 100);
+     },
++    setPrivilege: (state, privilege) => {
++      state.userPrivilege = privilege;
++    },
+   },
+   actions: {
+     async getBmcTime({ commit }) {
+diff --git a/src/views/Login/Login.vue b/src/views/Login/Login.vue
+index 8d96573..88d1c7d 100644
+--- a/src/views/Login/Login.vue
++++ b/src/views/Login/Login.vue
+@@ -126,17 +126,17 @@ export default {
+           localStorage.setItem('storedUsername', username);
+           this.$store.commit('global/setUsername', username);
+           this.$store.commit('global/setLanguagePreference', i18n.locale);
+-          return this.$store.dispatch(
+-            'authentication/checkPasswordChangeRequired',
+-            username
+-          );
++          return this.$store.dispatch('authentication/getUserInfo', username);
+         })
+-        .then((passwordChangeRequired) => {
+-          if (passwordChangeRequired) {
++        .then(({ PasswordChangeRequired, RoleId }) => {
++          if (PasswordChangeRequired) {
+             this.$router.push('/change-password');
+           } else {
+             this.$router.push('/');
+           }
++          if (RoleId) {
++            this.$store.commit('global/setPrivilege', RoleId);
++          }
+         })
+         .catch((error) => console.log(error))
+         .finally(() => (this.disableSubmitButton = false));
+diff --git a/tests/unit/AppNavigation.spec.js b/tests/unit/AppNavigation.spec.js
+index b37c1e4..ce410c8 100644
+--- a/tests/unit/AppNavigation.spec.js
++++ b/tests/unit/AppNavigation.spec.js
+@@ -1,16 +1,25 @@
+-import { mount, createWrapper } from '@vue/test-utils';
++import { mount, createLocalVue, createWrapper } from '@vue/test-utils';
+ import AppNavigation from '@/components/AppNavigation';
+ import Vue from 'vue';
++import Vuex from 'vuex';
+ import VueRouter from 'vue-router';
+ import { BootstrapVue } from 'bootstrap-vue';
+ 
++const localVue = createLocalVue();
++localVue.use(Vuex);
++
+ describe('AppNavigation.vue', () => {
+   let wrapper;
++  const router = new VueRouter();
++  const actions = {
++    'global/userPrivilege': jest.fn(),
++  };
++  const store = new Vuex.Store({ actions });
+   Vue.use(BootstrapVue);
+   Vue.use(VueRouter);
+-  const router = new VueRouter();
+ 
+   wrapper = mount(AppNavigation, {
++    store,
+     router,
+     mocks: {
+       $t: (key) => key,
+-- 
+2.25.1
+

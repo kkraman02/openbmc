@@ -1,0 +1,98 @@
+From 91651f9561b0b3c43d2c93f49787b0b717198018 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Mon, 13 Feb 2023 04:05:01 +0000
+Subject: [PATCH] Apply route restrictions by default
+
+https://gerrit.openbmc.org/c/openbmc/webui-vue/+/58883 configures the
+privilege for Intel platform only.
+This commit applies similar change to common code to work for other
+platforms.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/components/AppNavigation/AppNavigationMixin.js | 8 ++++++++
+ src/router/routes.js                               | 8 ++++++++
+ src/store/modules/GlobalStore.js                   | 2 +-
+ src/views/Login/Login.vue                          | 1 +
+ 4 files changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/src/components/AppNavigation/AppNavigationMixin.js b/src/components/AppNavigation/AppNavigationMixin.js
+index bbbbb1e..25b649f 100644
+--- a/src/components/AppNavigation/AppNavigationMixin.js
++++ b/src/components/AppNavigation/AppNavigationMixin.js
+@@ -7,6 +7,13 @@ import IconSecurity from '@carbon/icons-vue/es/security/16';
+ import IconChevronUp from '@carbon/icons-vue/es/chevron--up/16';
+ import IconDataBase from '@carbon/icons-vue/es/data--base--alt/16';
+ 
++const roles = {
++  administrator: 'Administrator',
++  operator: 'Operator',
++  readonly: 'ReadOnly',
++  noaccess: 'NoAccess',
++};
++
+ const AppNavigationMixin = {
+   components: {
+     iconOverview: IconDashboard,
+@@ -105,6 +112,7 @@ const AppNavigationMixin = {
+               id: 'virtual-media',
+               label: this.$t('appNavigation.virtualMedia'),
+               route: '/operations/virtual-media',
++              exclusiveToRoles: [roles.administrator],
+             },
+           ],
+         },
+diff --git a/src/router/routes.js b/src/router/routes.js
+index 3cbdabc..dc3e0ad 100644
+--- a/src/router/routes.js
++++ b/src/router/routes.js
+@@ -31,6 +31,13 @@ import VirtualMedia from '@/views/Operations/VirtualMedia';
+ import Power from '@/views/ResourceManagement/Power';
+ import i18n from '@/i18n';
+ 
++const roles = {
++  administrator: 'Administrator',
++  operator: 'Operator',
++  readonly: 'ReadOnly',
++  noaccess: 'NoAccess',
++};
++
+ const routes = [
+   {
+     path: '/login',
+@@ -269,6 +276,7 @@ const routes = [
+         component: VirtualMedia,
+         meta: {
+           title: i18n.t('appPageTitle.virtualMedia'),
++          exclusiveToRoles: [roles.administrator],
+         },
+       },
+       {
+diff --git a/src/store/modules/GlobalStore.js b/src/store/modules/GlobalStore.js
+index 74eb1e8..5c85537 100644
+--- a/src/store/modules/GlobalStore.js
++++ b/src/store/modules/GlobalStore.js
+@@ -40,7 +40,7 @@ const GlobalStore = {
+       : true,
+     username: localStorage.getItem('storedUsername'),
+     isAuthorized: true,
+-    userPrivilege: null,
++    userPrivilege: localStorage.getItem('storedUserPrivilege'),
+   },
+   getters: {
+     assetTag: (state) => state.assetTag,
+diff --git a/src/views/Login/Login.vue b/src/views/Login/Login.vue
+index 88d1c7d..3a5e40b 100644
+--- a/src/views/Login/Login.vue
++++ b/src/views/Login/Login.vue
+@@ -135,6 +135,7 @@ export default {
+             this.$router.push('/');
+           }
+           if (RoleId) {
++            localStorage.setItem('storedUserPrivilege', RoleId);
+             this.$store.commit('global/setPrivilege', RoleId);
+           }
+         })
+-- 
+2.25.1
+
