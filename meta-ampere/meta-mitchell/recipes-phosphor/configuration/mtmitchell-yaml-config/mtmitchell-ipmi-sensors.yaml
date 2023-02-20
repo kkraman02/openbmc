@@ -1231,91 +1231,91 @@
     path: /xyz/openbmc_project/sensors/temperature/S1_THDIODE_Temp
 217:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 15
+    entityID: 0x2d
+    entityInstance: 1
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_0_Temp
 218:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 16
+    entityID: 0x2d
+    entityInstance: 2
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_1_Temp
 219:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 17
+    entityID: 0x2d
+    entityInstance: 3
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_2_Temp
 220:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 18
+    entityID: 0x2d
+    entityInstance: 4
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_3_Temp
 221:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 19
+    entityID: 0x2d
+    entityInstance: 5
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_4_Temp
 222:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 20
+    entityID: 0x2d
+    entityInstance: 6
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_5_Temp
 223:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 21
+    entityID: 0x2d
+    entityInstance: 7
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_6_Temp
 224:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 22
+    entityID: 0x2d
+    entityInstance: 8
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_7_Temp
 225:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 23
+    entityID: 0x2d
+    entityInstance: 9
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_8_Temp
 30:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 24
+    entityID: 0x2d
+    entityInstance: 10
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_0_Temp
 31:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 25
+    entityID: 0x2d
+    entityInstance: 11
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_1_Temp
 32:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 26
+    entityID: 0x2d
+    entityInstance: 12
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_2_Temp
 33:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 27
+    entityID: 0x2d
+    entityInstance: 13
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_3_Temp
 34:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 28
+    entityID: 0x2d
+    entityInstance: 14
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_4_Temp
 35:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 29
+    entityID: 0x2d
+    entityInstance: 15
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_5_Temp
 36:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 30
+    entityID: 0x2d
+    entityInstance: 16
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_6_Temp
 37:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 31
+    entityID: 0x2d
+    entityInstance: 17
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_7_Temp
 38:
     <<: *TEMP_DEFAULTS
-    entityID: 3
-    entityInstance: 32
+    entityID: 0x2d
+    entityInstance: 18
     path: /xyz/openbmc_project/sensors/temperature/S1_Die_8_Temp
