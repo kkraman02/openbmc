@@ -332,90 +332,6 @@
     },
     {
         "Desc":{
-            "Name":"NVMeRBP_MaxTemp",
-            "SensorType":"temperature"
-        },
-        "Threshold" :
-        {
-            "CriticalHigh": 70
-        },
-        "Associations":
-        [
-            [
-                "chassis",
-                "all_sensors",
-                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
-            ],
-            [
-                "inventory",
-                "sensors",
-                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
-            ]
-        ],
-        "Params":{
-            "DbusParam": [
-                {
-                    "ParamName": "n26",
-                    "Desc": {
-                        "Name": "nvme26",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n27",
-                    "Desc": {
-                        "Name": "nvme27",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n28",
-                    "Desc": {
-                        "Name": "nvme28",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n29",
-                    "Desc": {
-                        "Name": "nvme29",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n30",
-                    "Desc": {
-                        "Name": "nvme30",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n31",
-                    "Desc": {
-                        "Name": "nvme31",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n32",
-                    "Desc": {
-                        "Name": "nvme32",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n33",
-                    "Desc": {
-                        "Name": "nvme33",
-                        "SensorType": "temperature"
-                    }
-                }
-            ]
-        },
-        "Expression": "max((n26 == n26) ? n26 : 0,(n27 == n27) ? n27 : 0,(n28 == n28) ? n28 : 0,(n29 == n29) ? n29 : 0,(n30 == n30) ? n30 : 0,(n31 == n31) ? n31 : 0,(n32 == n32) ? n32 : 0,(n33 == n33) ? n33 : 0)"
-    },
-    {
-        "Desc":{
             "Name":"FrontBP_MaxTemp",
             "SensorType":"temperature"
         },
@@ -462,48 +378,6 @@
             ]
         },
         "Expression": "max((n1 == n1) ? n1 : 0,(n2 == n2) ? n2 : 0,(n3 == n3) ? n3 : 0)"
-    },
-    {
-        "Desc":{
-            "Name":"RearBP_MaxTemp",
-            "SensorType":"temperature"
-        },
-        "Threshold" :
-        {
-            "CriticalHigh": 70
-        },
-        "Associations":
-        [
-            [
-                "chassis",
-                "all_sensors",
-                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
-            ],
-            [
-                "inventory",
-                "sensors",
-                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
-            ]
-        ],
-        "Params":{
-            "DbusParam": [
-                {
-                    "ParamName": "n1",
-                    "Desc": {
-                        "Name": "RearBPTemp1",
-                        "SensorType": "temperature"
-                    }
-                },
-                {
-                    "ParamName": "n2",
-                    "Desc": {
-                        "Name": "RearBPTemp2",
-                        "SensorType": "temperature"
-                    }
-                }
-            ]
-        },
-        "Expression": "max((n1 == n1) ? n1 : 0,(n2 == n2) ? n2 : 0)"
     },
     {
         "Desc":{
