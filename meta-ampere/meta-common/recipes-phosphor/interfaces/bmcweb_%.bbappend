@@ -20,4 +20,5 @@ SRC_URI += " \
             file://0008-Support-HostInterface-privilege-role.patch \
             file://0009-Revert-Implement-If-Match-header-in-Http-layer.patch \
             file://0010-Check-HostName-valid-on-PATCH-operation.patch \
+            file://0011-Revert-Remove-ObjectManager-search-code-in-sensors.patch \
            "
