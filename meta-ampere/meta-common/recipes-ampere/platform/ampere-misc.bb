@@ -24,7 +24,7 @@ DEPENDS += "i2c-tools"
 RDEPENDS:${PN} += "bash"
 
 SRC_URI = "git://github.com/ampere-openbmc/ampere-misc.git;protocol=https;branch=ampere"
-SRCREV = "dcd1a486f53b1f7bdf81829b44719dd9423f042f"
+SRCREV = "944ab50c02b7467b680a93b39ae697ffe0c7bb8c"
 
 S = "${WORKDIR}/git"
 
