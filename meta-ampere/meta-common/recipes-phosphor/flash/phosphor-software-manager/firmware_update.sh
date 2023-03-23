@@ -76,15 +76,15 @@ case ${EXTENDED_VERSION} in
 		;;
 
 	"mbcpld")
-		IMAGE=$(find "${IMG_PATH}" -type f \( -name "*.jed" \))
+		IMAGE=$(find "${IMG_PATH}" -type f \( -name "*.jed" -o -name "*.bin" \))
 		CMD="/usr/sbin/ampere_firmware_upgrade.sh mb_cpld $IMAGE"
 		;;
 	"bmccpld")
-		IMAGE=$(find "${IMG_PATH}" -type f \( -name "*.jed" \))
+		IMAGE=$(find "${IMG_PATH}" -type f \( -name "*.jed" -o -name "*.bin" \))
 		CMD="/usr/sbin/ampere_firmware_upgrade.sh bmc_cpld $IMAGE"
 		;;
 	"bpcpld"*)
-		IMAGE=$(find "${IMG_PATH}" -type f \( -name "*.bin" \))
+		IMAGE=$(find "${IMG_PATH}" -type f \( -name "*.jed" -o -name "*.bin" \))
 		TARGET="${EXTENDED_VERSION:6}"
 		CMD="/usr/sbin/ampere_firmware_upgrade.sh bp_cpld $IMAGE $TARGET"
 		;;
