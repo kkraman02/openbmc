@@ -1,0 +1,70 @@
+From c0c52c7f444fe2ebf80670ca1f0f62e76453a106 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Thu, 30 Mar 2023 14:26:57 +0700
+Subject: [PATCH] Add method connect API to get system information
+
+It is expected for WebUI "Server power operations" -> "Power ON|Off
+(Graceful/ Immediately) the CPU via WebUI" -> "Refresh Button" or
+after 5 seconds will reload the new value as the "Server
+Status". However, the current webUI does not reload this page. This
+commit fixes the issue by adding code to connect the method connect API
+to get system information.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/store/modules/Operations/ControlStore.js        | 13 ++++++++-----
+ .../ServerPowerOperations/ServerPowerOperations.vue |  1 +
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/src/store/modules/Operations/ControlStore.js b/src/store/modules/Operations/ControlStore.js
+index 9b8bf73..022a49d 100644
+--- a/src/store/modules/Operations/ControlStore.js
++++ b/src/store/modules/Operations/ControlStore.js
+@@ -4,24 +4,27 @@ import i18n from '@/i18n';
+ /**
+  * Watch for serverStatus changes in GlobalStore module
+  * to set isOperationInProgress state
+- * Stop watching status changes and resolve Promise when
+- * serverStatus value matches passed argument or after 5 minutes
++ * Allows run get API from redfish function starting
++ * after the interval of 5 seconds time, then repeating continuously
++ * at that interval until serverStatus value matches passed argument
++ * then Stop watching status changes and resolve Promise.
+  * @param {string} serverStatus
+  * @returns {Promise}
+  */
+ const checkForServerStatus = function (serverStatus) {
+   return new Promise((resolve) => {
+-    const timer = setTimeout(() => {
++    const timer = setInterval(() => {
++      this.dispatch('global/getSystemInfo');
+       resolve();
+       unwatch();
+-    }, 300000 /*5mins*/);
++    }, 5000); /*5seconds*/
+     const unwatch = this.watch(
+       (state) => state.global.serverStatus,
+       (value) => {
+         if (value === serverStatus) {
+           resolve();
+           unwatch();
+-          clearTimeout(timer);
++          clearInterval(timer);
+         }
+       }
+     );
+diff --git a/src/views/Operations/ServerPowerOperations/ServerPowerOperations.vue b/src/views/Operations/ServerPowerOperations/ServerPowerOperations.vue
+index ba9ebce..80046f3 100644
+--- a/src/views/Operations/ServerPowerOperations/ServerPowerOperations.vue
++++ b/src/views/Operations/ServerPowerOperations/ServerPowerOperations.vue
+@@ -205,6 +205,7 @@ export default {
+     Promise.all([
+       this.$store.dispatch('serverBootSettings/getBootSettings'),
+       this.$store.dispatch('controls/getLastPowerOperationTime'),
++      this.$store.dispatch('global/getSystemInfo'),
+       bootSettingsPromise,
+     ]).finally(() => this.endLoader());
+   },
+-- 
+2.25.1
+

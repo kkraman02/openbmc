@@ -6,4 +6,5 @@ SRC_URI += "\
             file://0003-Added-route-restrictions-based-on-user-privilege.patch \
             file://0004-Apply-route-restrictions-by-default.patch \
             file://0005-Fix-wrong-firmware-update-URL.patch \
+            file://0006-Add-method-connect-API-to-get-system-information.patch \
            "
