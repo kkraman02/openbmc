@@ -14,5 +14,20 @@
         "requiredFlag": false
       }
     ]
+  },
+  "DRAM":
+  {
+    "Description": "DRAM Max Throttle Enable, it is using pldm method",
+    "pldm":
+    [
+      {
+        "objectPath": "/xyz/openbmc_project/sensors/oem/S0_DRAM_MThrotEn",
+        "requiredFlag": true
+      },
+      {
+        "objectPath": "/xyz/openbmc_project/sensors/oem/S1_DRAM_MThrotEn",
+        "requiredFlag": false
+      }
+    ]
   }
 }
