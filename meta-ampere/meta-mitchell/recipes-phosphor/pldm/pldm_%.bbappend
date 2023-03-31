@@ -1,15 +1,12 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 RDEPENDS:${PN} += "bash"
+DEPENDS += "ac03-nvparm"
 
 SRC_URI = "git://github.com/ampere-openbmc/pldm;protocol=https;branch=ampere \
            file://host_eid \
            file://eid_to_name.json \
            file://dbus_to_host_effecter.json \
-           file://nvparm.a \
-           file://gpt.h \
-           file://spinor_func.h \
-           file://utils.h \
           "
 SRCREV = "c04d518c2fc5cf38869a64688609aabfa56a1c60"
 
@@ -24,14 +21,6 @@ EXTRA_OEMESON = " \
         -Dpoll-sensor-timer-interval=3000 \
         -Dampere=enabled \
         "
-do_configure:prepend() {
-  cd ${WORKDIR}/git
-  mkdir libnvparm
-  cp ${WORKDIR}/nvparm.a ${WORKDIR}/git/libnvparm/
-  cp ${WORKDIR}/gpt.h ${WORKDIR}/git/libnvparm/
-  cp ${WORKDIR}/spinor_func.h ${WORKDIR}/git/libnvparm/
-  cp ${WORKDIR}/utils.h ${WORKDIR}/git/libnvparm/
-}
 
 do_install:append() {
     install -d ${D}/${datadir}/pldm

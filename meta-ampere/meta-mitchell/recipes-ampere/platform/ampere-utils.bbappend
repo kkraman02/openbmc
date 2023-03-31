@@ -10,7 +10,6 @@ SRC_URI:append = " \
            file://ampere_firmware_version.sh \
            file://ampere_fanctrl.sh \
            file://ampere_pldm_effecter_trigger.sh \
-           file://nvparm \
           "
 
 do_install:append() {
@@ -22,5 +21,4 @@ do_install:append() {
     install -m 0755 ${WORKDIR}/ampere_firmware_version.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_fanctrl.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_pldm_effecter_trigger.sh ${D}/${sbindir}/
-    install -m 0755 ${WORKDIR}/nvparm ${D}/${sbindir}/
 }
