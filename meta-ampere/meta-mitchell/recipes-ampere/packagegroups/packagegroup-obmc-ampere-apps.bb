@@ -37,6 +37,7 @@ RDEPENDS:${PN}-system = " \
                          bootstrap-account \
                          libmctp \
                          pldm \
+                         ac03-nvparm \
                         "
 
 RDEPENDS:${PN}-system:append:mtmitchell = "ampere-gpio-config"
