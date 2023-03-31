@@ -38,6 +38,7 @@ RDEPENDS:${PN}-system = " \
                          hostfw-revision-recover \
                          libmctp \
                          pldm \
+                         ac03-nvparm \
                         "
 
 SUMMARY:${PN}-flash = "Ampere Flash"
