@@ -35,6 +35,7 @@ SUMMARY:${PN}-system = "Ampere System"
 RDEPENDS:${PN}-system = " \
                          smbios-mdr \
                          bootstrap-account \
+                         ac03-nvparm \
                         "
 
 RDEPENDS:${PN}-system:append:mtmitchell = "ampere-gpio-config"
