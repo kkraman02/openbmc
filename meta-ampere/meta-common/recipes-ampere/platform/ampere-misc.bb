@@ -24,7 +24,7 @@ DEPENDS += "i2c-tools"
 RDEPENDS:${PN} += "bash"
 
 SRC_URI = "git://github.com/ampere-openbmc/ampere-misc.git;protocol=https;branch=ampere"
-SRCREV = "dcd1a486f53b1f7bdf81829b44719dd9423f042f"
+SRCREV = "8d89c6ea386401caff7ed24d1e4097e4c9918ed0"
 
 S = "${WORKDIR}/git"
 
@@ -42,5 +42,7 @@ SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "state-logger", 
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "mctp-ctrl", " xyz.openbmc_project.AmpereMctpCtrl.service", "", d)}"
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager", " xyz.openbmc_project.power.manager.service", "", d)}"
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager", " power-cap-action-oem.service", "", d)}"
+SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager", " power-cap-exceeds-limit.service", "", d)}"
+SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager", " power-cap-drops-below-limit.service", "", d)}"
 
 FILES:${PN} += "${@bb.utils.contains("PACKAGECONFIG", "power-manager"," ${datadir}/power-manager/power-manager-cfg.json", "", d)}"
