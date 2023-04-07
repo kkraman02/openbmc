@@ -1,0 +1,31 @@
+From 185f03f6270d3043330efdfc3c07892a09f0e6b1 Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Fri, 7 Apr 2023 09:35:33 +0000
+Subject: [PATCH] Fix wrong firmware update URL
+
+BMCWEB using the /redfish/v1/UpdateService/update/ url for firmware
+update while Webui-vui is using /redfish/v1/UpdateService/.
+This caused the BMC firmware update issue.
+This commit corrects the url in POST method to fix the issue.
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+---
+ src/store/modules/Operations/FirmwareStore.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/store/modules/Operations/FirmwareStore.js b/src/store/modules/Operations/FirmwareStore.js
+index c6639ff..de15b33 100644
+--- a/src/store/modules/Operations/FirmwareStore.js
++++ b/src/store/modules/Operations/FirmwareStore.js
+@@ -141,7 +141,7 @@ const FirmwareStore = {
+         await dispatch('setApplyTimeImmediate');
+       }
+       return await api
+-        .post('/redfish/v1/UpdateService', image, {
++        .post('/redfish/v1/UpdateService/update', image, {
+           headers: { 'Content-Type': 'application/octet-stream' },
+         })
+         .catch((error) => {
+--
+2.25.1
+
