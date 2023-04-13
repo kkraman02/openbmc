@@ -42,6 +42,8 @@ RDEPENDS:${PN}-system = " \
                          ac03-nvparm \
                         "
 
+RDEPENDS:${PN}-system:append:mtmitchell = "ampere-gpio-config"
+
 SUMMARY:${PN}-flash = "Ampere Flash"
 RDEPENDS:${PN}-flash = " \
                         phosphor-software-manager \
