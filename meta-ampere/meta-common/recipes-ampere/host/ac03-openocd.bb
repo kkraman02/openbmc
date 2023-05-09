@@ -5,8 +5,8 @@ DEPENDS = "libusb-compat libftdi"
 RDEPENDS:${PN} = "libusb1"
 
 #Remote Git Repository
-SRC_URI = "git://github.com/AmpereComputing/ampere-openocd.git;protocol=https;branch=release/3.3.2.1"
-SRCREV = "20c63f0f2d5ab5e53f92097ec4905a5d6eb27ba9"
+SRC_URI = "git://github.com/AmpereComputing/ampere-openocd.git;protocol=https;branch=release/3.4.1.1"
+SRCREV = "b4ca8e96e9125f6bbcea69d482e69c77c9c9f4b7"
 S = "${WORKDIR}/git"
 
 inherit pkgconfig autotools-brokensep gettext
