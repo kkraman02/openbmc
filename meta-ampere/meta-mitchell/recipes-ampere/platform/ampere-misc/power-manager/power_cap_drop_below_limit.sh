@@ -37,7 +37,12 @@ do
         set_DRAM_Max_Throttle_Enable 0
     elif [ ${Plimit_Sensor_155} -lt ${Plimit_Sensor_155_MaxValue} ]
     then
-        X=$((((${System_Power_Limit} - ${Current_Sys_Power_Consumed})) / 2))
+        X=$((((${System_Power_Limit} - ${Current_Sys_Power_Consumed})) / ${devided_value}))
+        if [ ${X} -gt ${X_limit} ]
+        then
+            X=${X_limit}
+        fi
+
         Plimit_Sensor_155=$((${Plimit_Sensor_155} + ${X}))
 
         if [ ${Plimit_Sensor_155} -gt ${Plimit_Sensor_155_MaxValue} ]

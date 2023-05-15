@@ -34,7 +34,12 @@ do
 
     if [ ${Plimit_Sensor_155} -gt ${Plimit_Sensor_155_MinValue} ]
     then
-        X=$((((${Current_Sys_Power_Consumed} - ${System_Power_Limit})) / 2))
+        X=$((((${Current_Sys_Power_Consumed} - ${System_Power_Limit})) / ${devided_value}))
+        if [ ${X} -gt ${X_limit} ]
+        then
+            X=${X_limit}
+        fi
+
         Plimit_Sensor_155=$((${Plimit_Sensor_155} - ${X}))
 
         if [[ ${Plimit_Sensor_155} -lt ${Plimit_Sensor_155_MinValue} ]]

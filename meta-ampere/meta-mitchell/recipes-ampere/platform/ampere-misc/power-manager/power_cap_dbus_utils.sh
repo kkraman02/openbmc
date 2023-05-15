@@ -27,11 +27,15 @@ power_cap_interface="xyz.openbmc_project.Control.Power.Cap"
 power_cap_property="PowerCap"
 except_act_property="ExceptionAction"
 
+X_limit=10
+devided_value=2
+
 cpu1_presence_flag="false"
 state=$(gpioget $(gpiofind presence-cpu1))
 if [ "$state" == "0" ]
 then
     cpu1_presence_flag="true"
+    devided_value=4
 fi
 
 function get_Current_Sys_Power_Consumed()
