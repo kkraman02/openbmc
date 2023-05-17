@@ -26,6 +26,12 @@ power_cap_object_path="/xyz/openbmc_project/control/power/manager/cap"
 power_cap_interface="xyz.openbmc_project.Control.Power.Cap"
 power_cap_property="PowerCap"
 except_act_property="ExceptionAction"
+power_cap_enable_property="PowerCapEnable"
+
+host_state_service="xyz.openbmc_project.State.Host"
+host0_object_path="/xyz/openbmc_project/state/host0"
+host_state_interface="xyz.openbmc_project.State.Host"
+current_host_state_property="CurrentHostState"
 
 X_limit=10
 devided_value=2
@@ -37,6 +43,24 @@ then
     cpu1_presence_flag="true"
     devided_value=4
 fi
+
+function is_host_running()
+{
+    host_state=$(get_Current_Host_State)
+    if [[ "${host_state}" == *".Running"* ]]
+    then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+function get_Current_Host_State()
+{
+    echo $(get_dbus_property ${host_state_service} \
+        ${host0_object_path} ${host_state_interface} \
+        ${current_host_state_property})
+}
 
 function get_Current_Sys_Power_Consumed()
 {
@@ -56,19 +80,25 @@ function get_System_Exception_Action()
         ${power_cap_object_path} ${power_cap_interface} ${except_act_property})
 }
 
-function get_Plimit_Sensor_155()
+function get_Power_Limit_Activate_State()
+{
+    echo $(get_dbus_property ${power_manager_service} ${power_cap_object_path} \
+        ${power_cap_interface} ${power_cap_enable_property})
+}
+
+function get_Plimit_Sensor()
 {
     echo $(get_dbus_property ${pldm_service} \
         ${s0_plimit_object_path} ${value_interface} ${value_property})
 }
 
-function get_Plimit_Sensor_155_MinValue()
+function get_Plimit_Sensor_MinValue()
 {
     echo $(get_dbus_property ${pldm_service} \
         ${s0_plimit_object_path} ${value_interface} ${min_value_property})
 }
 
-function get_Plimit_Sensor_155_MaxValue()
+function get_Plimit_Sensor_MaxValue()
 {
     echo $(get_dbus_property ${pldm_service} \
         ${s0_plimit_object_path} ${value_interface} ${max_value_property})
@@ -80,7 +110,7 @@ function get_DRAM_Max_Throttle_Enable()
         ${s0_dram_throt_en_object_path} ${value_interface} ${value_property})
 }
 
-function set_Plimit_Sensor_155()
+function set_Plimit_Sensor()
 {
     value=$1
 

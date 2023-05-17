@@ -15,13 +15,13 @@ fi
 
 Current_Sys_Power_Consumed=$(get_Current_Sys_Power_Consumed)
 System_Power_Limit=$(get_System_Power_Limit)
-Plimit_Sensor_155=$(get_Plimit_Sensor_155)
-Plimit_Sensor_155_MinValue=$(get_Plimit_Sensor_155_MinValue)
+Plimit_Sensor=$(get_Plimit_Sensor)
+Plimit_Sensor_MinValue=$(get_Plimit_Sensor_MinValue)
 
 Current_Sys_Power_Consumed=${Current_Sys_Power_Consumed%.*}
 System_Power_Limit=${System_Power_Limit%.*}
-Plimit_Sensor_155=${Plimit_Sensor_155%.*}
-Plimit_Sensor_155_MinValue=${Plimit_Sensor_155_MinValue%.*}
+Plimit_Sensor=${Plimit_Sensor%.*}
+Plimit_Sensor_MinValue=${Plimit_Sensor_MinValue%.*}
 Prev_Sys_Power_Consumed=${Current_Sys_Power_Consumed}
 
 while [ ! ${System_Power_Limit} -gt ${Current_Sys_Power_Consumed} ]
@@ -32,7 +32,7 @@ do
         exit 0
     fi
 
-    if [ ${Plimit_Sensor_155} -gt ${Plimit_Sensor_155_MinValue} ]
+    if [ ${Plimit_Sensor} -gt ${Plimit_Sensor_MinValue} ]
     then
         X=$((((${Current_Sys_Power_Consumed} - ${System_Power_Limit})) / ${devided_value}))
         if [ ${X} -gt ${X_limit} ]
@@ -40,14 +40,14 @@ do
             X=${X_limit}
         fi
 
-        Plimit_Sensor_155=$((${Plimit_Sensor_155} - ${X}))
+        Plimit_Sensor=$((${Plimit_Sensor} - ${X}))
 
-        if [[ ${Plimit_Sensor_155} -lt ${Plimit_Sensor_155_MinValue} ]]
+        if [[ ${Plimit_Sensor} -lt ${Plimit_Sensor_MinValue} ]]
         then
-            Plimit_Sensor_155=${Plimit_Sensor_155_MinValue}
+            Plimit_Sensor=${Plimit_Sensor_MinValue}
         fi
 
-        set_Plimit_Sensor_155 ${Plimit_Sensor_155}
+        set_Plimit_Sensor ${Plimit_Sensor}
     else
         if [ ${DRAM_Max_Throttle_Enable} -eq 1 ]
         then
@@ -62,7 +62,7 @@ do
 
     if [ ! ${Current_Sys_Power_Consumed} -lt ${Prev_Sys_Power_Consumed_90} ] && \
        [ ! ${Current_Sys_Power_Consumed} -gt ${Prev_Sys_Power_Consumed_110} ] && \
-       [ ! ${Plimit_Sensor_155} -gt ${Plimit_Sensor_155_MinValue} ]
+       [ ! ${Plimit_Sensor} -gt ${Plimit_Sensor_MinValue} ]
     then
         set_DRAM_Max_Throttle_Enable 1
     fi
