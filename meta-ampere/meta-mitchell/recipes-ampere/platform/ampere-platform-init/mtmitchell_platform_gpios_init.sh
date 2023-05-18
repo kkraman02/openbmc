@@ -49,9 +49,6 @@ function post-platform-init() {
     fi
     gpio_name_set host0-sysreset-n 1
 
-    # gpio-leds is controlling bmc-ready, not by gpio
-    echo 1 > /sys/class/leds/bmc-ready/brightness
-
     echo "Set default FAN speed to 60%"
     for filename in /sys/class/hwmon/*/pwm*
     do
