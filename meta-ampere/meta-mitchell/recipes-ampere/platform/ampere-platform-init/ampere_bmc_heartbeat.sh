@@ -3,6 +3,10 @@
 # shellcheck source=meta-ampere/meta-mitchell/recipes-ampere/platform/ampere-platform-init/gpio-lib.sh
 source /usr/sbin/gpio-lib.sh
 
+# Setting bmc-ready pin after multi-user.target is reached. Which means BMC
+# firmware is Ready.
+echo 1 > /sys/class/leds/bmc-ready/brightness
+
 value=0
 while true;
 do

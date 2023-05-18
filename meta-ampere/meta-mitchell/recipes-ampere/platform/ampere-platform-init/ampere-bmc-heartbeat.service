@@ -1,10 +1,12 @@
 [Unit]
 Description=Ampere BMC heartbeat service
+After=multi-user.target
 
 [Service]
 Type=simple
 Restart=always
 ExecStart=/usr/sbin/ampere_bmc_heartbeat.sh
+ExecStop=/bin/sh -c "echo 0 > /sys/class/leds/bmc-ready/brightness"
 SyslogIdentifier = "ampere-bmc-heartbeat"
 
 [Install]
