@@ -2,6 +2,10 @@
 
 # shellcheck disable=SC2046
 
+# Setting bmc-ready pin after multi-user.target is reached. Which means BMC
+# firmware is Ready.
+echo 1 > /sys/class/leds/bmc-ready/brightness
+
 value=0
 while true;
 do
