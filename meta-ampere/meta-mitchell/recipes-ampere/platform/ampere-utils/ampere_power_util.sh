@@ -112,7 +112,7 @@ wait_bert_complete() {
 	cnt=10
 	while [ $cnt -gt 0 ]
 	do
-		bert_done=$(busctl get-property com.ampere.RAS.Trigger /com/ampere/crashcapture/trigger com.ampere.CrashCapture.Trigger TriggerActions | cut -d"." -f6)
+		bert_done=$(busctl get-property com.ampere.CrashCapture.Trigger /com/ampere/crashcapture/trigger com.ampere.CrashCapture.Trigger TriggerActions | cut -d"." -f6)
 		if ! [ "$bert_done" == "Done\"" ]; then
 			sleep 3
 			cnt=$((cnt - 1))
@@ -123,6 +123,17 @@ wait_bert_complete() {
 }
 
 host_reboot_wa() {
+    bert_trigger=$(busctl get-property com.ampere.CrashCapture.Trigger /com/ampere/crashcapture/trigger com.ampere.CrashCapture.Trigger TriggerActions | cut -d"." -f6)
+    if [ "$bert_trigger" == "Bert\"" ]; then
+        echo "Notify Crash Capture that BERT data is ready to be read."
+        busctl set-property com.ampere.CrashCapture.Trigger \
+               /com/ampere/crashcapture/trigger \
+               com.ampere.CrashCapture.Trigger \
+               TriggerProcess b true
+       # Wait until RAS BERT process completed
+       wait_bert_complete
+    fi
+    
     busctl set-property xyz.openbmc_project.State.Chassis \
         /xyz/openbmc_project/state/chassis0 xyz.openbmc_project.State.Chassis \
         RequestedPowerTransition s "xyz.openbmc_project.State.Chassis.Transition.Off"
@@ -135,13 +146,6 @@ host_reboot_wa() {
         sleep 2
     done
     echo "The power is already Off."
-
-    bert_trigger=$(busctl get-property com.ampere.RAS.Trigger /com/ampere/ras/trigger com.ampere.RAS.Trigger TriggerActions | cut -d"." -f6)
-    if [ "$bert_trigger" == "Bert\"" ]; then
-       echo "BERT is triggered."
-       # Wait until RAS BERT process completed
-       wait_bert_complete
-    fi
 
     busctl set-property xyz.openbmc_project.State.Host \
         /xyz/openbmc_project/state/host0 xyz.openbmc_project.State.Host \
