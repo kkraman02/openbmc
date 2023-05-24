@@ -1,0 +1,27 @@
+From b1b2e1048ab617e92bd2b5dd3a86a85d2af3bd91 Mon Sep 17 00:00:00 2001
+From: Jonathan Doman <jonathan.doman@intel.com>
+Date: Thu, 25 May 2023 14:04:24 -0700
+Subject: [PATCH] Use new default obmc-console socket path
+
+Change-Id: I15d6dcdb6993e51f13572d022cb3039e50df6c47
+Signed-off-by: Jonathan Doman <jonathan.doman@intel.com>
+---
+ sol/sol_manager.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sol/sol_manager.hpp b/sol/sol_manager.hpp
+index 33a537d..dd857fe 100644
+--- a/sol/sol_manager.hpp
++++ b/sol/sol_manager.hpp
+@@ -20,7 +20,7 @@ constexpr size_t MAX_PAYLOAD_SIZE = 255;
+ constexpr uint8_t MAJOR_VERSION = 0x01;
+ constexpr uint8_t MINOR_VERSION = 0x00;
+ 
+-constexpr char CONSOLE_SOCKET_PATH[] = "\0obmc-console";
++constexpr char CONSOLE_SOCKET_PATH[] = "\0obmc-console.default";
+ constexpr size_t CONSOLE_SOCKET_PATH_LEN = sizeof(CONSOLE_SOCKET_PATH) - 1;
+ 
+ constexpr uint8_t accIntervalFactor = 5;
+-- 
+2.34.1
+
