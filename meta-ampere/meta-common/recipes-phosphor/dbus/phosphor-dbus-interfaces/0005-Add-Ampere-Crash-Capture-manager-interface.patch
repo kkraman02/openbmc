@@ -1,11 +1,11 @@
-From b19dc808a610f4f0a41af37b166654b5294d96ec Mon Sep 17 00:00:00 2001
+From 4d8ef2e83d66660f04d3332143525dde5a2b9bf5 Mon Sep 17 00:00:00 2001
 From: Dung Cao <dung@os.amperecomputing.com>
 Date: Thu, 4 May 2023 04:25:25 +0000
 Subject: [PATCH] Add Ampere Crash Capture manager interface
 
 The "com.ampere.CrashCapture.Trigger" interface will provide a
-dbus object that containing the type of crash capture trigger and
-the Uncorrectable Error trigger
+dbus object that containing the type of crash capture trigger,
+the Uncorrectable Error trigger, and crash information ready trigger.
 
 busctl tree com.ampere.CrashCapture.Trigger
 `-/com
@@ -35,13 +35,13 @@ org.freedesktop.DBus.Properties     interface -          -                      
 
 Signed-off-by: Dung Cao <dung@os.amperecomputing.com>
 ---
- .../ampere/CrashCapture/Trigger/meson.build   | 15 +++++++
- gen/com/ampere/CrashCapture/meson.build       | 16 ++++++++
+ .../ampere/CrashCapture/Trigger/meson.build   | 15 ++++++
+ gen/com/ampere/CrashCapture/meson.build       | 16 +++++++
  gen/com/ampere/meson.build                    |  2 +
  meson.build                                   |  3 ++
  meson_options.txt                             |  1 +
- .../CrashCapture/Trigger.interface.yaml       | 41 +++++++++++++++++++
- 6 files changed, 78 insertions(+)
+ .../CrashCapture/Trigger.interface.yaml       | 47 +++++++++++++++++++
+ 6 files changed, 84 insertions(+)
  create mode 100644 gen/com/ampere/CrashCapture/Trigger/meson.build
  create mode 100644 gen/com/ampere/CrashCapture/meson.build
  create mode 100644 gen/com/ampere/meson.build
@@ -123,10 +123,10 @@ index c193bbd..9d3d177 100644
 +option('data_com_ampere', type: 'boolean', value: true)
 diff --git a/yaml/com/ampere/CrashCapture/Trigger.interface.yaml b/yaml/com/ampere/CrashCapture/Trigger.interface.yaml
 new file mode 100644
-index 0000000..277efe3
+index 0000000..d96fc93
 --- /dev/null
 +++ b/yaml/com/ampere/CrashCapture/Trigger.interface.yaml
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,47 @@
 +description: 
 +    Catastrophic SoC error scenarios can be caused by fatal firmware errors, 
 +    hardware faults, or watchdog timer timeouts. These conditions trigger the
@@ -150,6 +150,12 @@ index 0000000..277efe3
 +      description: >
 +          Define UE event is triggered or not
 +      
++
++    - name: TriggerProcess
++      type: boolean
++      default: false
++      description: >
++          The crash information is ready to be read.
 +
 +enumerations:
 +    - name: TriggerAction
