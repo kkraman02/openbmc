@@ -1,0 +1,6 @@
+[Unit]
+Description=Ampere Computing LLC Sys Auth Failure event service
+
+[Service]
+Restart=no
+ExecStart=/usr/sbin/ampere_add_redfishevent.sh OpenBMC.0.1.AmpereEvent.Warning "Socket %i Authentication Failure detected"
