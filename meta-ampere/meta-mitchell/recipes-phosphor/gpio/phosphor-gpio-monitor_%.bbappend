@@ -9,6 +9,7 @@ SRC_URI += " \
 SYSTEMD_SERVICE:${PN}-monitor += " \
                                   ampere-host-shutdown-ack@.service \
                                   ampere-host-reboot@.service \
+                                  ampere_sys_auth_failure@.service \
                                  "
 
 FILES:${PN}-monitor += " \
