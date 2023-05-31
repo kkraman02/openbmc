@@ -26,5 +26,19 @@
         "EventMon": "FALLING",
         "Target": "ampere_overtemp@1.service",
         "Continue": true
+    },
+    {
+        "Name": "S0_SYS_AUTH_FAILURE_L",
+        "LineName": "s0-sys-auth-failure-n",
+        "EventMon": "FALLING",
+        "Target": "ampere_sys_auth_failure@0.service",
+        "Continue": true
+    },
+    {
+        "Name": "S1_SYS_AUTH_FAILURE_L",
+        "LineName": "s1-sys-auth-failure-n",
+        "EventMon": "FALLING",
+        "Target": "ampere_sys_auth_failure@1.service",
+        "Continue": true
     }
 ]
