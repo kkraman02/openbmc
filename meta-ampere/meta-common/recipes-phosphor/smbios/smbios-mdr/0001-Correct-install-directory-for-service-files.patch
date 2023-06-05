@@ -1,0 +1,30 @@
+From 9fc2457f31a16683182d17faac491ab0c541e575 Mon Sep 17 00:00:00 2001
+From: Hieu Huynh <hieuh@os.amperecomputing.com>
+Date: Mon, 5 Jun 2023 06:36:29 +0000
+Subject: [PATCH] Correct install directory for service files
+
+The cmake installs the binary file to the /lib directory but yocto install
+from the /usr. This caused the error didn't find the smbios-mdrv2.service file.
+Change from /lib to /usr to fix the issue.
+
+Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 50be81c..d040121 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -59,7 +59,7 @@ endif ()
+ install (TARGETS smbiosmdrv2app DESTINATION bin)
+ 
+ install (FILES  ${PROJECT_SOURCE_DIR}/service_files/smbios-mdrv2.service
+-    DESTINATION /lib/systemd/system/)
++    DESTINATION /usr/lib/systemd/system/)
+ 
+ option (DIMM_ONLY_LOCATOR "Only use the DIMM number, and not the bank" OFF)
+ 
+-- 
+2.25.1
+
