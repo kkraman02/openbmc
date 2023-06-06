@@ -23,4 +23,5 @@ SRC_URI += " \
             file://0011-Correct-the-service-and-path-of-PowerCap-D-Bus-inter.patch \
             file://0012-Disable-patching-to-IPv4Address-items-when-DHCP-is-enabled.patch \
             file://0013-Prevent-the-Operator-user-can-flash-the-firmware.patch \
+            file://0014-Support-remove-session-cases.patch \
            "
