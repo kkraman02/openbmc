@@ -6,6 +6,6 @@ StartLimitIntervalSec=30
 StartLimitBurst=3
 
 [Service]
-Restart=on-failure
-ExecStart=phosphor-fan-control
+Restart=always
+ExecStart=-phosphor-fan-control
 RestartSec=20

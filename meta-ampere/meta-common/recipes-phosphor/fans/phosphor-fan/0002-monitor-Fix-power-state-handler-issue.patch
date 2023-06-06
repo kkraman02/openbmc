@@ -1,0 +1,94 @@
+From 541a5cbe08b94aad3979f2d1b7622fc86ae7ddf5 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Wed, 13 Sep 2023 04:46:19 +0000
+Subject: [PATCH] monitor: Fix power state handler issue
+
+When monitor service starts after power is already on, it causes
+powerStateChanged handler to be called when System() is not constructed
+successfully and load() has not been called. This should be treated as
+false power state change. This time, the service should not throw and
+the handler should be called again after load() is called.
+
+Tested:
+
+Host State is running, restart phosphor-fan-monitor service
+-> Host is not powered off.
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ monitor/system.cpp |  7 ++++++-
+ monitor/system.hpp | 16 +++++++++++-----
+ 2 files changed, 17 insertions(+), 6 deletions(-)
+
+diff --git a/monitor/system.cpp b/monitor/system.cpp
+index 4a33bb5..8950651 100644
+--- a/monitor/system.cpp
++++ b/monitor/system.cpp
+@@ -88,6 +88,7 @@ void System::start()
+ 
+ void System::load()
+ {
++    _falsePowerStateChange = false;
+     json jsonObj = json::object();
+ #ifdef MONITOR_USE_JSON
+     try
+@@ -122,6 +123,7 @@ void System::load()
+                       [this](auto& rule) {
+             rule->check(PowerRuleState::runtime, _fanHealth);
+         });
++        powerStateChanged(true);
+     }
+ 
+     subscribeSensorsToServices();
+@@ -371,10 +373,13 @@ void System::powerStateChanged(bool powerStateOn)
+     {
+         if (!_loaded)
+         {
++            if (_falsePowerStateChange)
++            {
++                return;
++            }
+             log<level::ERR>("No conf file found at power on");
+             throw std::runtime_error("No conf file found at power on");
+         }
+-
+         // If no fan has its sensors on D-Bus, then there is a problem
+         // with the fan controller.  Log an error and shut down.
+         if (std::all_of(_fans.begin(), _fans.end(), [](const auto& fan) {
+diff --git a/monitor/system.hpp b/monitor/system.hpp
+index bf6e6b6..f99503c 100644
+--- a/monitor/system.hpp
++++ b/monitor/system.hpp
+@@ -153,6 +153,17 @@ class System
+     /* The event loop reference */
+     const sdeventplus::Event& _event;
+ 
++    /**
++     * @brief true if config files have been loaded
++     */
++    bool _loaded = false;
++
++    /**
++     * @brief will be set to false when all members are
++     * constructed and it starts to load config
++     */
++    bool _falsePowerStateChange = true;
++
+     /* Trust manager of trust groups */
+     std::unique_ptr<phosphor::fan::trust::Manager> _trust;
+ 
+@@ -201,11 +212,6 @@ class System
+      */
+     std::vector<std::unique_ptr<sdbusplus::bus::match_t>> _sensorMatch;
+ 
+-    /**
+-     * @brief true if config files have been loaded
+-     */
+-    bool _loaded = false;
+-
+     /**
+      * @brief The name of the dump file
+      */
+-- 
+2.25.1
+
