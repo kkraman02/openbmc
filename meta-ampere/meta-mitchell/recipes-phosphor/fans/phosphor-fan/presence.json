@@ -1,7 +1,7 @@
 [
     {
        "name": "FAN0",
-       "path": "/system/board/Mt_Mitchell_MB/FAN0",
+       "path": "/system/board/Mt_Mitchell_Motherboard/FAN0",
        "methods": [
           {
              "type": "tach",
@@ -17,7 +17,7 @@
     },
     {
        "name": "FAN1",
-       "path": "/system/board/Mt_Mitchell_MB/FAN1",
+       "path": "/system/board/Mt_Mitchell_Motherboard/FAN1",
        "methods": [
           {
              "type": "tach",
@@ -33,7 +33,7 @@
     },
      {
        "name": "FAN2",
-       "path": "/system/board/Mt_Mitchell_MB/FAN2",
+       "path": "/system/board/Mt_Mitchell_Motherboard/FAN2",
        "methods": [
           {
              "type": "tach",
@@ -49,7 +49,7 @@
     },
     {
        "name": "FAN3",
-       "path": "/system/board/Mt_Mitchell_MB/FAN3",
+       "path": "/system/board/Mt_Mitchell_Motherboard/FAN3",
        "methods": [
           {
              "type": "tach",
@@ -65,7 +65,7 @@
     },
     {
        "name": "FAN4",
-       "path": "/system/board/Mt_Mitchell_MB/FAN4",
+       "path": "/system/board/Mt_Mitchell_Motherboard/FAN4",
        "methods": [
           {
              "type": "tach",
@@ -81,7 +81,7 @@
     },
     {
        "name": "FAN5",
-       "path": "/system/board/Mt_Mitchell_MB/FAN5",
+       "path": "/system/board/Mt_Mitchell_Motherboard/FAN5",
        "methods": [
           {
              "type": "tach",
