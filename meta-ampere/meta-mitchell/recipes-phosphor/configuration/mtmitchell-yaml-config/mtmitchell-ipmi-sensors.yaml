@@ -35,6 +35,11 @@
     <<: *TEMP_DEFAULTS
     entityInstance: 5
     path: /xyz/openbmc_project/sensors/temperature/PcieZoneTemp2
+6:
+    <<: *TEMP_DEFAULTS
+    entityID: 0x37
+    entityInstance: 1
+    path: /xyz/openbmc_project/sensors/temperature/InletTemp
 7:
     <<: *TEMP_DEFAULTS
     entityID: 0x37
@@ -65,6 +70,11 @@
     entityID: 0x1e
     entityInstance: 2
     path: /xyz/openbmc_project/sensors/temperature/NVMeFBP_MaxTemp
+13:
+    <<: *TEMP_DEFAULTS
+    entityID: 0x37
+    entityInstance: 5
+    path: /xyz/openbmc_project/sensors/temperature/SysInletTemp
 14:
     <<: *TEMP_DEFAULTS
     entityID: 0x1e
@@ -1289,6 +1299,16 @@
     entityID: 0x2d
     entityInstance: 9
     path: /xyz/openbmc_project/sensors/temperature/S0_Die_8_Temp
+226:
+    <<: *TEMP_DEFAULTS
+    entityID: 0x20
+    entityInstance: 35
+    path: /xyz/openbmc_project/sensors/temperature/S0_DIMMG0_Temp
+227:
+    <<: *TEMP_DEFAULTS
+    entityID: 0x20
+    entityInstance: 36
+    path: /xyz/openbmc_project/sensors/temperature/S1_DIMMG0_Temp
 30:
     <<: *TEMP_DEFAULTS
     entityID: 0x2d
