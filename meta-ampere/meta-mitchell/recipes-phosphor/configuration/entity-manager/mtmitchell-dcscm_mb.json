@@ -1971,6 +1971,20 @@
             },
             {
                 "Address": "0x48",
+                "Bus": 8,
+                "Name": "InletTemp",
+                "Thresholds": [
+                    {
+                        "Direction": "greater than",
+                        "Name": "upper critical",
+                        "Severity": 1,
+                        "Value": 65
+                    }
+                ],
+                "Type": "TMP112"
+            },
+            {
+                "Address": "0x48",
                 "Bus": 20,
                 "Name": "OutletTemp1",
                 "Type": "TMP75"
@@ -2134,6 +2148,25 @@
                 "temp1_Name": "PSU1_TEMP",
                 "vin_Name": "PSU1_VINPUT",
                 "vout1_Name": "PSU1_VOUTPUT"
+            },
+            {
+                "Name": "SysInletTemp",
+                "Sensors": [
+                    "SysCabInletTemp",
+                    "MBInletTemp1",
+                    "MBInletTemp2",
+                    "InletTemp"
+                ],
+                "Thresholds": [
+                    {
+                        "Direction": "greater than",
+                        "Name": "upper critical",
+                        "Severity": 1,
+                        "Value": 65
+                    }
+                ],
+                "Type": "Minimum",
+                "Units": "DegreesC"
             }
         ],
         "Name": "Mt.Mitchell_Motherboard",

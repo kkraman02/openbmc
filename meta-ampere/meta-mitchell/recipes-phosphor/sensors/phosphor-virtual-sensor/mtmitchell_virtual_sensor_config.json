@@ -2,6 +2,13 @@
     {
         "Desc":
         {
+            "Config": "D-Bus",
+            "Type": "Minimum"
+        }
+    },
+    {
+        "Desc":
+        {
             "Name": "total_power",
             "SensorType": "power"
         },
@@ -420,5 +427,277 @@
             ]
         },
         "Expression": "max((n1 == n1) ? n1 : 0,(n2 == n2) ? n2 : 0)"
+    },
+    {
+        "Desc":{
+            "Name":"S0_DIMMG0_Temp",
+            "SensorType":"temperature"
+        },
+        "Associations":
+        [
+            [
+                "chassis",
+                "all_sensors",
+                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
+            ],
+            [
+                "inventory",
+                "sensors",
+                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
+            ]
+        ],
+        "Params":{
+            "DbusParam": [
+                {
+                    "ParamName": "n0",
+                    "Desc": {
+                        "Name": "S0_DIMM0_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n1",
+                    "Desc": {
+                        "Name": "S0_DIMM1_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n2",
+                    "Desc": {
+                        "Name": "S0_DIMM2_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n3",
+                    "Desc": {
+                        "Name": "S0_DIMM3_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n4",
+                    "Desc": {
+                        "Name": "S0_DIMM4_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n5",
+                    "Desc": {
+                        "Name": "S0_DIMM5_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n6",
+                    "Desc": {
+                        "Name": "S0_DIMM6_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n7",
+                    "Desc": {
+                        "Name": "S0_DIMM7_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n8",
+                    "Desc": {
+                        "Name": "S0_DIMM8_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n9",
+                    "Desc": {
+                        "Name": "S0_DIMM9_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n10",
+                    "Desc": {
+                        "Name": "S0_DIMM0_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n11",
+                    "Desc": {
+                        "Name": "S0_DIMM11_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n12",
+                    "Desc": {
+                        "Name": "S0_DIMM12_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n13",
+                    "Desc": {
+                        "Name": "S0_DIMM13_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n14",
+                    "Desc": {
+                        "Name": "S0_DIMM14_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n15",
+                    "Desc": {
+                        "Name": "S0_DIMM15_Temp",
+                        "SensorType": "temperature"
+                    }
+                }
+            ]
+        },
+        "Expression": "max((n0 == n0) ? n0 : 0,(n1 == n1) ? n1 : 0,(n2 == n2) ? n2 : 0,(n3 == n3) ? n3 : 0,(n4 == n4) ? n4 : 0,(n5 == n5) ? n5 : 0,(n6 == n6) ? n6 : 0,(n7 == n7) ? n7 : 0,(n8 == n8) ? n8 : 0,(n9 == n9) ? n9 : 0,(n10 == n10) ? n10 : 0,(n11 == n11) ? n11 : 0,(n12 == n12) ? n12 : 0,(n13 == n13) ? n13 : 0,(n14 == n14) ? n14 : 0,(n15 == n15) ? n15 : 0)"
+    },
+    {
+        "Desc":{
+            "Name":"S1_DIMMG0_Temp",
+            "SensorType":"temperature"
+        },
+        "Associations":
+        [
+            [
+                "chassis",
+                "all_sensors",
+                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
+            ],
+            [
+                "inventory",
+                "sensors",
+                "/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard"
+            ]
+        ],
+        "Params":{
+            "DbusParam": [
+                {
+                    "ParamName": "n0",
+                    "Desc": {
+                        "Name": "S1_DIMM0_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n1",
+                    "Desc": {
+                        "Name": "S1_DIMM1_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n2",
+                    "Desc": {
+                        "Name": "S1_DIMM2_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n3",
+                    "Desc": {
+                        "Name": "S1_DIMM3_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n4",
+                    "Desc": {
+                        "Name": "S1_DIMM4_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n5",
+                    "Desc": {
+                        "Name": "S1_DIMM5_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n6",
+                    "Desc": {
+                        "Name": "S1_DIMM6_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n7",
+                    "Desc": {
+                        "Name": "S1_DIMM7_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n8",
+                    "Desc": {
+                        "Name": "S1_DIMM8_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n9",
+                    "Desc": {
+                        "Name": "S1_DIMM9_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n10",
+                    "Desc": {
+                        "Name": "S1_DIMM0_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n11",
+                    "Desc": {
+                        "Name": "S1_DIMM11_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n12",
+                    "Desc": {
+                        "Name": "S1_DIMM12_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n13",
+                    "Desc": {
+                        "Name": "S1_DIMM13_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n14",
+                    "Desc": {
+                        "Name": "S1_DIMM14_Temp",
+                        "SensorType": "temperature"
+                    }
+                },
+                {
+                    "ParamName": "n15",
+                    "Desc": {
+                        "Name": "S1_DIMM15_Temp",
+                        "SensorType": "temperature"
+                    }
+                }
+            ]
+        },
+        "Expression": "max((n0 == n0) ? n0 : 0,(n1 == n1) ? n1 : 0,(n2 == n2) ? n2 : 0,(n3 == n3) ? n3 : 0,(n4 == n4) ? n4 : 0,(n5 == n5) ? n5 : 0,(n6 == n6) ? n6 : 0,(n7 == n7) ? n7 : 0,(n8 == n8) ? n8 : 0,(n9 == n9) ? n9 : 0,(n10 == n10) ? n10 : 0,(n11 == n11) ? n11 : 0,(n12 == n12) ? n12 : 0,(n13 == n13) ? n13 : 0,(n14 == n14) ? n14 : 0,(n15 == n15) ? n15 : 0)"
     }
 ]
