@@ -1,0 +1,87 @@
+From b584762151c9e8097b98d78fc357e6f85557068b Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Thu, 8 Jun 2023 10:18:50 +0000
+Subject: [PATCH] Add minimum calculation
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ virtualSensor.cpp | 34 ++++++++++++++++++++++++++++++++--
+ virtualSensor.hpp |  2 ++
+ 2 files changed, 34 insertions(+), 2 deletions(-)
+
+diff --git a/virtualSensor.cpp b/virtualSensor.cpp
+index a61527e..ddca9a1 100644
+--- a/virtualSensor.cpp
++++ b/virtualSensor.cpp
+@@ -8,9 +8,10 @@ static constexpr bool DEBUG = false;
+ static constexpr auto busName = "xyz.openbmc_project.VirtualSensor";
+ static constexpr auto sensorDbusPath = "/xyz/openbmc_project/sensors/";
+ static constexpr auto vsThresholdsIfaceSuffix = ".Thresholds";
+-static constexpr std::array<const char*, 2> calculationIfaces = {
++static constexpr std::array<const char*, 3> calculationIfaces = {
+     "xyz.openbmc_project.Configuration.ModifiedMedian",
+-    "xyz.openbmc_project.Configuration.Maximum"};
++    "xyz.openbmc_project.Configuration.Maximum",
++    "xyz.openbmc_project.Configuration.Minimum"};
+ static constexpr auto defaultHysteresis = 0;
+ 
+ PHOSPHOR_LOG2_USING_WITH_FLAGS;
+@@ -464,6 +465,10 @@ double VirtualSensor::calculateValue(const std::string& calculation,
+     {
+         return calculateMaximumValue(paramMap);
+     }
++    else if (calculation == "xyz.openbmc_project.Configuration.Minimum")
++    {
++        return calculateMinimumValue(paramMap);
++    }
+     return std::numeric_limits<double>::quiet_NaN();
+ }
+ 
+@@ -580,6 +585,31 @@ double VirtualSensor::calculateMaximumValue(
+     return *maxIt;
+ }
+ 
++double VirtualSensor::calculateMinimumValue(
++    const VirtualSensor::ParamMap& paramMap)
++{
++    std::vector<double> values;
++
++    for (auto& param : paramMap)
++    {
++        auto& name = param.first;
++        if (auto var = symbols.get_variable(name))
++        {
++            if (!sensorInRange(var->ref()))
++            {
++                continue;
++            }
++            values.push_back(var->ref());
++        }
++    }
++    auto minIt = std::min_element(values.begin(), values.end());
++    if (minIt == values.end())
++    {
++        return std::numeric_limits<double>::quiet_NaN();
++    }
++    return *minIt;
++}
++
+ void VirtualSensor::createThresholds(const Json& threshold,
+                                      const std::string& objPath)
+ {
+diff --git a/virtualSensor.hpp b/virtualSensor.hpp
+index 8f17395..fb321aa 100644
+--- a/virtualSensor.hpp
++++ b/virtualSensor.hpp
+@@ -191,6 +191,8 @@ class VirtualSensor : public ValueObject
+         calculateModifiedMedianValue(const VirtualSensor::ParamMap& paramMap);
+     /** @brief Calculate maximum value from sensors */
+     double calculateMaximumValue(const VirtualSensor::ParamMap& paramMap);
++
++    double calculateMinimumValue(const VirtualSensor::ParamMap& paramMap);
+     /** @brief create threshold objects from json config */
+     void createThresholds(const Json& threshold, const std::string& objPath);
+     /** @brief parse config from entity manager **/
+-- 
+2.25.1
+
