@@ -516,7 +516,7 @@
                         "Direction": "greater than",
                         "Name": "upper non critical",
                         "Severity": 0,
-                        "Value": 0.78
+                        "Value": 0.714
                     },
                     {
                         "Direction": "less than",
@@ -528,7 +528,7 @@
                         "Direction": "less than",
                         "Name": "lower non critical",
                         "Severity": 0,
-                        "Value": 0.63
+                        "Value": 0.686
                     }
                 ],
                 "Type": "ADC"
@@ -551,7 +551,7 @@
                         "Direction": "greater than",
                         "Name": "upper non critical",
                         "Severity": 0,
-                        "Value": 0.78
+                        "Value": 0.714
                     },
                     {
                         "Direction": "less than",
@@ -563,7 +563,7 @@
                         "Direction": "less than",
                         "Name": "lower non critical",
                         "Severity": 0,
-                        "Value": 0.63
+                        "Value": 0.686
                     }
                 ],
                 "Type": "ADC"
