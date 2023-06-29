@@ -20,6 +20,8 @@ SRC_URI:append = " \
            file://ampere_fan_status_monitor.sh \
            file://ampere_fan_status_monitor.service \
            file://ampere_power_control_lock.sh \
+           file://utils-lib.sh \
+           file://ampere_utils \
           "
 SRCREV = "0766a4a1f5711a24a4ec59b1d37794d1e6677d40"
 
@@ -56,4 +58,6 @@ do_install() {
     install -m 755 ${WORKDIR}/ampere_post_fan_status_monitor.sh ${D}/${sbindir}/
     install -m 755 ${WORKDIR}/ampere_fan_status_monitor.sh ${D}/${sbindir}/
     install -m 755 ${WORKDIR}/ampere_power_control_lock.sh ${D}/${sbindir}/
+    install -m 755 ${WORKDIR}/utils-lib.sh ${D}/${sbindir}/
+    install -m 755 ${WORKDIR}/ampere_utils ${D}/${sbindir}/
 }

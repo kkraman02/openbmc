@@ -6,6 +6,6 @@ BindTo=obmc-host-already-on@0.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/sh -c "if [[ -f "/usr/sbin/ampere_utils.sh" ]]; then ampere_utils.sh host state on; fi"
-ExecStop=/bin/sh -c "if [[ -f "/usr/sbin/ampere_utils.sh" ]]; then ampere_utils.sh host state go-to-off; fi"
+ExecStart=/bin/sh -c "if [[ -f "/usr/sbin/ampere_utils" ]]; then ampere_utils host state on; fi"
+ExecStop=/bin/sh -c "if [[ -f "/usr/sbin/ampere_utils" ]]; then ampere_utils host state go-to-off; fi"
 
