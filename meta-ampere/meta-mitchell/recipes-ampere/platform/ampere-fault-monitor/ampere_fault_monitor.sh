@@ -42,6 +42,9 @@ source /usr/sbin/gpio-lib.sh
 	led_port0_config=0x06
 	led_port0_output=0x02
 
+# RAS UE flag
+	fault_RAS_UE_flag='/var/ampere/fault_RAS_UE'
+
 # functions declaration
 check_fan_failed() {
 	if [[ -f $fan_failed_flag ]]; then
@@ -174,9 +177,20 @@ check_gpio_fault() {
     fi
 }
 
+check_RAS_UE_occured() {
+	if [[ -f $fault_RAS_UE_flag ]]; then
+		echo "RAS UE error occured, turn on fault LED"
+		RAS_UE_occured="true"
+	else
+		RAS_UE_occured="false"
+	fi
+}
+
+
 check_fault() {
 	if [[ "$fan_failed" == "true" ]] || [[ "$psu_failed" == "true" ]] \
                                     || [[ "$overtemp_occured" == "true" ]] \
+                                    || [[ "$RAS_UE_occured" == "true" ]] \
                                     || [[ "$gpio_fault" == "true" ]]; then
 		fault="true"
 	else
@@ -205,6 +219,10 @@ do
 
 	check_overtemp_occured
 	check_gpio_fault
+
+	# RAS UE
+	check_RAS_UE_occured
+
 	# Check fault to update fail
 	check_fault
 	control_sys_fault_led

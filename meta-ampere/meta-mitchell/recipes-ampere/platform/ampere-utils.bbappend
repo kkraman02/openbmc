@@ -13,6 +13,7 @@ SRC_URI:append = " \
            file://ampere_spi_util.sh \
            file://ampere_scandump_mode.sh \
            file://ampere_pldm_event_handler.sh \
+           file://ampere_utils.sh \
           "
 
 do_install:append() {
@@ -27,4 +28,5 @@ do_install:append() {
     install -m 0755 ${WORKDIR}/ampere_spi_util.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_scandump_mode.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_pldm_event_handler.sh ${D}/${sbindir}/
+    install -m 0755 ${WORKDIR}/ampere_utils.sh ${D}/${sbindir}/
 }
