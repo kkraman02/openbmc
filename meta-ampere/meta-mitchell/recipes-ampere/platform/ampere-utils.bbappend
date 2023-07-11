@@ -14,6 +14,7 @@ SRC_URI:append = " \
            file://ampere_scandump_mode.sh \
            file://ampere_pldm_event_handler.sh \
            file://ampere_utils.sh \
+           file://ampere_request_mpro_state.sh \
           "
 
 do_install:append() {
@@ -29,4 +30,5 @@ do_install:append() {
     install -m 0755 ${WORKDIR}/ampere_scandump_mode.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_pldm_event_handler.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_utils.sh ${D}/${sbindir}/
+    install -m 0755 ${WORKDIR}/ampere_request_mpro_state.sh ${D}/${sbindir}/
 }
