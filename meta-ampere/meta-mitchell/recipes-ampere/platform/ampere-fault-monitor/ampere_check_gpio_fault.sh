@@ -13,7 +13,8 @@
 #
 # Usage: <app_name> <socket 0/1>
 #
-# shellcheck source=/dev/null
+# shellcheck disable=SC2046
+# shellcheck source=meta-ampere/meta-mitchell/recipes-ampere/platform/ampere-platform-init/gpio-lib.sh
 source /usr/sbin/gpio-lib.sh
 
 # global variables
@@ -45,9 +46,6 @@ source /usr/sbin/gpio-lib.sh
     gpio_status=0
 
     socket=$1
-
-    socket1_present=151
-    socket1_status=1
 
     S0_fault_gpio='s0-fault-alert'
     S1_fault_gpio='s1-fault-alert'
@@ -316,8 +314,8 @@ init_sysfs_fault_gpio() {
 if [ "$socket" == "0" ]; then
 	fault_gpio="$S0_fault_gpio"
 else
-	socket1_status=$(gpioget 0 "$socket1_present")
-	if [ "$socket1_status" == 1 ]; then
+	socket1_present=$(gpioget $(gpiofind presence-cpu1))
+	if [ "$socket1_present" == 1 ]; then
 		echo "socket 1 not present"
 		exit 0
 	fi
