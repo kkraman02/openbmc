@@ -1,0 +1,238 @@
+[
+    {
+        "path": "system/chassis/Mt_Jade/FAN3",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN3_1",
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN3_2"
+                ]
+            },
+            {
+                "types":
+                {
+                    "rType": "cooled_by",
+                    "fType": "cooling"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis/Mt_Jade/FAN4",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN4_1",
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN4_2"
+                ]
+            },
+            {
+                "types":
+                {
+                    "rType": "cooled_by",
+                    "fType": "cooling"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis/Mt_Jade/FAN5",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN5_1",
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN5_2"
+                ]
+            },
+            {
+                "types":
+                {
+                    "rType": "cooled_by",
+                    "fType": "cooling"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis/Mt_Jade/FAN6",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN6_1",
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN6_2"
+                ]
+            },
+            {
+                "types":
+                {
+                    "rType": "cooled_by",
+                    "fType": "cooling"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis/Mt_Jade/FAN7",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN7_1",
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN7_2"
+                ]
+            },
+            {
+                "types":
+                {
+                    "rType": "cooled_by",
+                    "fType": "cooling"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis/Mt_Jade/FAN8",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN8_1",
+                    "/xyz/openbmc_project/sensors/fan_tach/FAN8_2"
+                ]
+            },
+            {
+                "types":
+                {
+                    "rType": "cooled_by",
+                    "fType": "cooling"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/powersupply/PowerSupply0",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/current/PSU0_IINPUT",
+                    "/xyz/openbmc_project/sensors/current/PSU0_IOUTPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU0_PINPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU0_POUTPUT",
+                    "/xyz/openbmc_project/sensors/temperature/PSU0_TEMP",
+                    "/xyz/openbmc_project/sensors/voltage/PSU0_VINPUT",
+                    "/xyz/openbmc_project/sensors/voltage/PSU0_VOUTPUT"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/powersupply/PowerSupply1",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/current/PSU1_IINPUT",
+                    "/xyz/openbmc_project/sensors/current/PSU1_IOUTPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU1_PINPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU1_POUTPUT",
+                    "/xyz/openbmc_project/sensors/temperature/PSU1_TEMP",
+                    "/xyz/openbmc_project/sensors/voltage/PSU1_VINPUT",
+                    "/xyz/openbmc_project/sensors/voltage/PSU1_VOUTPUT"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis",
+        "endpoints":
+        [
+	        {
+                "types": {
+                    "rType": "powering",
+                    "fType": "powered_by"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/inventory/system/powersupply/PowerSupply0",
+                    "/xyz/openbmc_project/inventory/system/powersupply/PowerSupply1"
+                ]
+            }
+        ]
+    }
+]
