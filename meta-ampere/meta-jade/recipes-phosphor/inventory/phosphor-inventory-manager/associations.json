@@ -226,5 +226,67 @@
                 ]
             }
         ]
+    },
+    {
+        "path": "system/powersupply/PowerSupply0",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/current/PSU0_IINPUT",
+                    "/xyz/openbmc_project/sensors/current/PSU0_IOUTPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU0_PINPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU0_POUTPUT",
+                    "/xyz/openbmc_project/sensors/temperature/PSU0_TEMP",
+                    "/xyz/openbmc_project/sensors/voltage/PSU0_VINPUT",
+                    "/xyz/openbmc_project/sensors/voltage/PSU0_VOUTPUT"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/powersupply/PowerSupply1",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "inventory",
+                    "fType": "sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/current/PSU1_IINPUT",
+                    "/xyz/openbmc_project/sensors/current/PSU1_IOUTPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU1_PINPUT",
+                    "/xyz/openbmc_project/sensors/power/PSU1_POUTPUT",
+                    "/xyz/openbmc_project/sensors/temperature/PSU1_TEMP",
+                    "/xyz/openbmc_project/sensors/voltage/PSU1_VINPUT",
+                    "/xyz/openbmc_project/sensors/voltage/PSU1_VOUTPUT"
+                ]
+            }
+        ]
+    },
+    {
+        "path": "system/chassis",
+        "endpoints":
+        [
+	        {
+                "types": {
+                    "rType": "powering",
+                    "fType": "powered_by"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/inventory/system/powersupply/PowerSupply0",
+                    "/xyz/openbmc_project/inventory/system/powersupply/PowerSupply1"
+                ]
+            }
+        ]
     }
 ]
