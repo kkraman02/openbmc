@@ -1578,7 +1578,7 @@
                 "PowerState": "On",
                 "PresenceGpio": [
                     {
-                        "Name": "SLAVE_PRESENT_L",
+                        "Name": "presence-cpu1",
                         "Polarity": "Low"
                     }
                 ],
