@@ -1,0 +1,48 @@
+From 790233f69a29ffce60277f39f6d71ac703ac5d53 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Wed, 19 Jul 2023 07:27:59 +0000
+Subject: [PATCH] meta-ampere: Handle socket ID
+
+This commit fixes upstream prefix socket path from
+"\0obmc-console.default" to "\0obmc-console" to map with obmc-console
+source code.
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ src/host_console.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/host_console.cpp b/src/host_console.cpp
+index b4fe511..3eb5d30 100644
+--- a/src/host_console.cpp
++++ b/src/host_console.cpp
+@@ -15,7 +15,8 @@
+  * @brief Base path to the console's socket.
+  *        See obmc-console for details.
+  */
+-static constexpr char socketPath[] = "\0obmc-console.default";
++static constexpr char socketPath[] = "\0obmc-console";
++static constexpr std::string defaultSocketId = "default";
+ 
+ HostConsole::HostConsole(const std::string& socketId) :
+     socketId(socketId), socketFd(-1)
+@@ -54,11 +55,15 @@ void HostConsole::connect()
+ 
+     // Construct path to the socket file (see obmc-console for details)
+     std::string path(socketPath, socketPath + sizeof(socketPath) - 1);
++    path += '.';
+     if (!socketId.empty())
+     {
+-        path += '.';
+         path += socketId;
+     }
++    else
++    {
++        path += defaultSocketId;
++    }
+     if (path.length() > sizeof(sockaddr_un::sun_path))
+     {
+         throw std::invalid_argument("Invalid socket ID");
+-- 
+2.25.1
+
