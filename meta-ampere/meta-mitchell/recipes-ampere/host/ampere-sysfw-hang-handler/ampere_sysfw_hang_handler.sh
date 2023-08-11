@@ -7,7 +7,7 @@ source /usr/sbin/gpio-lib.sh
 function sel_trigger()
 {
 	echo "Error: system firmware hang, trigger sel"
-	ampere_add_redfishevent.sh OpenBMC.0.1.SystemPowerOnFailed.Critical
+	ampere_add_redfishevent.sh OpenBMC.0.1.AmpereCritical.Critical "System firmware, Mpro hang"
 }
 
 # Do reset the system
