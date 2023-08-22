@@ -10,6 +10,7 @@ EXTRA_OEMESON:append = " \
                          -Dhost-gpios=enabled \
                          -Dboot-count-max-allowed=1 \
                          -Donly-run-apr-on-power-loss=true \
+                         -Donly-allow-boot-when-bmc-ready=false \
                        "
 
 FILES:${PN} += "${systemd_system_unitdir}/*"
