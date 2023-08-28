@@ -1,0 +1,13 @@
+[Unit]
+Description=Ampere Platform Ext Vref Control Service
+Before=xyz.openbmc_project.EntityManager.service
+
+[Service]
+ExecStart=/usr/sbin/ampere_ext_vref_control.sh
+SyslogIdentifier=ampere_ext_vref_control.sh
+RemainAfterExit=yes
+Type=oneshot
+SuccessExitStatus=193
+
+[Install]
+WantedBy=multi-user.target

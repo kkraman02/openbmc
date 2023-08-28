@@ -4,6 +4,7 @@
 AST2600_GPIO_BASE=(
     512
     720
+    756
 )
 
 function gpio_configure_output() {
