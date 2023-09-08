@@ -5,8 +5,8 @@ DEPENDS = "libusb-compat libftdi"
 RDEPENDS:${PN} = "libusb1"
 
 #Remote Git Repository
-SRC_URI = "git://github.com/AmpereComputing/ampere-openocd.git;protocol=https;branch=release/3.5.1.1"
-SRCREV = "9f05818eb6df171abf83217c24c6d74e8a40e80c"
+SRC_URI = "git://github.com/AmpereComputing/ampere-openocd.git;protocol=https;branch=release/3.5.2.1"
+SRCREV = "17b9b26d771f45f1026cb10e0ae233976dc31620"
 S = "${WORKDIR}/git"
 
 inherit pkgconfig autotools-brokensep gettext
@@ -14,6 +14,8 @@ inherit pkgconfig autotools-brokensep gettext
 BBCLASSEXTEND += "native nativesdk"
 
 EXTRA_OECONF = "--disable-doxygen-html"
+
+do_configure[network] = "1"
 
 do_configure() {
     ./bootstrap
