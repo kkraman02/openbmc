@@ -130,14 +130,14 @@ wait_bert_complete() {
 }
 
 host_reboot_wa() {
+    echo "Notify Crash Capture reboot action from host."
+    busctl set-property com.ampere.CrashCapture.Trigger \
+       /com/ampere/crashcapture/trigger \
+       com.ampere.CrashCapture.Trigger \
+       TriggerProcess b true
     bert_timeout="0"
     bert_trigger=$(busctl get-property com.ampere.CrashCapture.Trigger /com/ampere/crashcapture/trigger com.ampere.CrashCapture.Trigger TriggerActions | cut -d"." -f6)
     if [ "$bert_trigger" == "Bert\"" ]; then
-        echo "Notify Crash Capture that BERT data is ready to be read."
-        busctl set-property com.ampere.CrashCapture.Trigger \
-               /com/ampere/crashcapture/trigger \
-               com.ampere.CrashCapture.Trigger \
-               TriggerProcess b true
        # Wait until RAS BERT process completed
        wait_bert_complete
        bert_timeout=$?
