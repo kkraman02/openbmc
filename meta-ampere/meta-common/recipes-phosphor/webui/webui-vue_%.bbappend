@@ -7,4 +7,5 @@ SRC_URI += "\
             file://0003-Fix-pressing-Refresh-button-not-removing-deleted-sen.patch \
             file://0004-Display-Power-Supply-Inventory-from-PowerSubsystem.patch \
             file://0005-add-Ampere-env.patch \
+            file://0006-Add-State-to-DIMM-slot-inventory-summary.patch \
            "

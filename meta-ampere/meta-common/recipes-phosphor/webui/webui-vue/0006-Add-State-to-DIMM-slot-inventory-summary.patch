@@ -1,0 +1,90 @@
+From 6c3e87a0d6a9077e76c5ea9d62e816aabacabfa4 Mon Sep 17 00:00:00 2001
+From: HuyLe <hule@amperecomputing.com>
+Date: Tue, 26 Sep 2023 21:01:03 +0700
+Subject: [PATCH] Add State to DIMM slot inventory summary
+
+Add state information in DIMM slot inventory summary so that users can
+know if the DIMM slot has DIMM plugged or not.
+
+Signed-off-by: HuyLe <hule@amperecomputing.com>
+---
+ src/locales/en-US.json                        |  1 +
+ .../Inventory/InventoryTableDimmSlot.vue      | 29 +++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/src/locales/en-US.json b/src/locales/en-US.json
+index 18bb7c6..9b0fe4a 100644
+--- a/src/locales/en-US.json
++++ b/src/locales/en-US.json
+@@ -439,6 +439,7 @@
+             "serviceEnabled": "Service enabled",
+             "serviceEntryPointUuid": "Service entry point UUID",
+             "sparePartNumber": "Spare part number",
++            "state":"State",
+             "statusHealthRollup": "Status (Health rollup)",
+             "statusState": "Status (State)",
+             "subModel": "Sub model",
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue b/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue
+index 196335e..6aa1578 100644
+--- a/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue
+@@ -50,6 +50,13 @@
+         <status-icon :status="statusIcon(value)" />
+         {{ value }}
+       </template>
++
++      <!-- StatusState -->
++      <template #cell(statusState)="{ value }">
++        <status-icon :status="statusStateIcon(value)" />
++        {{ value }}
++      </template>
++
+       <!-- Toggle identify LED -->
+       <template #cell(identifyLed)="row">
+         <b-form-checkbox
+@@ -224,6 +231,12 @@ export default {
+           formatter: this.dataFormatter,
+           tdClass: 'text-nowrap',
+         },
++        {
++          key: 'statusState',
++          label: this.$t('pageInventory.table.state'),
++          formatter: this.dataFormatter,
++          tdClass: 'text-nowrap',
++        },
+         {
+           key: 'locationNumber',
+           label: this.$t('pageInventory.table.locationNumber'),
+@@ -261,6 +274,8 @@ export default {
+     sortCompare(a, b, key) {
+       if (key === 'health') {
+         return this.sortStatus(a, b, key);
++      } else if (key === 'statusState') {
++        return this.sortStatusState(a, b, key);
+       }
+     },
+     onFiltered(filteredItems) {
+@@ -277,6 +292,20 @@ export default {
+     hasIdentifyLed(identifyLed) {
+       return typeof identifyLed === 'boolean';
+     },
++    statusStateIcon(status) {
++      switch (status) {
++        case 'Enabled':
++          return 'success';
++        case 'Absent':
++          return 'warning';
++        default:
++          return '';
++      }
++    },
++    sortStatusState(a, b, key) {
++      const statusState = ['Enabled', 'Absent'];
++      return statusState.indexOf(a[key]) - statusState.indexOf(b[key]);
++    },
+   },
+ };
+ </script>
+-- 
+2.25.1
+
