@@ -1,9 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-EXTRA_OEMESON:append = " \
-                         -Dwarm-reboot=disabled \
-                       "
-
 SRC_URI:append:mtmitchell = " file://ampere-obmc-power-start@.service"
 
 do_install:append:mtmitchell() {
