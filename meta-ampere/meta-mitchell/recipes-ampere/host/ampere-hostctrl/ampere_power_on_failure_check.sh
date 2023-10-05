@@ -17,10 +17,49 @@ function check_cpu_presence()
 	fi
 }
 
+function get_dbus_property()
+{
+	service=$1
+	object_path=$2
+	interface=$3
+	property=$4
+
+	value=$(busctl get-property "$service" "$object_path" "$interface" "$property" | cut -d" " -f2)
+
+	echo "$value"
+}
+
+function is_ATX_power_good()
+{
+	pgood_value=$(get_dbus_property org.openbmc.control.Power \
+					/org/openbmc/control/power0 org.openbmc.control.Power pgood)
+
+	if [ "$pgood_value" == "0" ]
+	then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+function is_PCP_power_good()
+{
+	pcp_value=$(get_dbus_property xyz.openbmc_project.State.HostCondition.Gpio \
+			/xyz/openbmc_project/Gpios/host0 xyz.openbmc_project.Condition.HostFirmware \
+			CurrentFirmwareCondition)
+
+	if [[ "$pcp_value" == *".Running"* ]]
+	then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
 function check_power_state()
 {
 	echo "ATX power good checking"
-	state=$(gpio_name_get power-chassis-good)
+	state=$(is_ATX_power_good)
 	if [ "$state" == "0" ]
 	then
 		echo "Error: Failed to turn on ATX Power"
@@ -42,7 +81,7 @@ function check_power_state()
 	fi
 
 	echo "PCP power good checking"
-	state=$(gpio_name_get host0-ready)
+	state=$(is_PCP_power_good)
 	if [ "$state" == "0" ]
 	then
 		echo "Error: PCP domain power failure. Power off Host"
@@ -56,14 +95,6 @@ function check_power_state()
 		ampere_add_redfishevent.sh OpenBMC.0.1.AmpereEvent.OK "PCP power is ON"
 	fi
 }
-
-# Check current Host status. Do nothing when the Host is currently ON
-st=$(busctl get-property xyz.openbmc_project.State.Host \
-	/xyz/openbmc_project/state/host0 xyz.openbmc_project.State.Host \
-	CurrentHostState | cut -d"." -f6)
-if [ "$st" == "Running\"" ]; then
-	exit 0
-fi
 
 action=$1
 
