@@ -20,33 +20,33 @@
 # shellcheck disable=SC2046
 
 do_flash () {
-	# Check the HNOR partition available
+	# always unbind then bind the ASpeed SMC driver again to prevent
+	# the changing of the device erasesize by nvparm
+	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
+	if [ -n "$HOST_MTD" ];
+	then
+		echo 1e630000.spi > /sys/bus/platform/drivers/spi-aspeed-smc/unbind
+		sleep 2
+	fi
+	echo 1e630000.spi > /sys/bus/platform/drivers/spi-aspeed-smc/bind
+
+	# Check the PNOR partition available
 	HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
 	if [ -z "$HOST_MTD" ];
 	then
-		# Check the ASpeed SMC driver binded before
-		HOST_SPI=/sys/bus/platform/drivers/spi-aspeed-smc/1e630000.spi
-		if [ -d "$HOST_SPI" ]; then
-			echo "Unbind the ASpeed SMC driver"
-			echo 1e630000.spi > /sys/bus/platform/drivers/spi-aspeed-smc/unbind
-			sleep 2
-		fi
-
-		# If the HNOR partition is not available, then bind again driver
-		echo "--- Bind the ASpeed SMC driver"
-		echo 1e630000.spi > /sys/bus/platform/drivers/spi-aspeed-smc/bind
-		sleep 2
-
-		HOST_MTD=$(< /proc/mtd grep "pnor" | sed -n 's/^\(.*\):.*/\1/p')
-		if [ -z "$HOST_MTD" ];
-		then
-			echo "Fail to probe Host SPI-NOR device"
-			exit 1
-		fi
+		echo "Fail to probe the Host SPI-NOR device"
+		exit 1
 	fi
 
 	echo "--- Flashing firmware image $IMAGE to @/dev/$HOST_MTD"
-	flashcp -v "$IMAGE" /dev/"$HOST_MTD"
+	HOST_MTD=${HOST_MTD/"mtd"/""}
+	flashrom -N -n -p linux_mtd:dev="$HOST_MTD" -w "$IMAGE"
+	if [ "$?" == '1' ]; then
+		echo "FAILED: Firmware update!!"
+		exit 1
+	else
+		echo "SUCCESS: Firmware update!!"
+	fi
 }
 
 
