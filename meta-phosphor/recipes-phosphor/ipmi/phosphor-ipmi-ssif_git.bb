@@ -11,7 +11,7 @@ SRCREV = "d2a2d41af375b88f9cb4e69cd8c5b1ea9763eb91"
 PV = "1.0+git${SRCPV}"
 PR = "r1"
 
-SRC_URI = "git://git@gitlab.com/AmpereComputing/bmc/openbmc/ssifbridge.git;protocol=ssh;branch=ampere"
+SRC_URI = "git://github.com/ampere-openbmc/ssifbridge.git;protocol=https;branch=ampere"
 
 SYSTEMD_SERVICE:${PN} = "ssifbridge.service"
 S = "${WORKDIR}/git"
