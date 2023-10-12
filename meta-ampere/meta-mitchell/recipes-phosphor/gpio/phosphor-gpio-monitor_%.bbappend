@@ -1,10 +1,12 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 RDEPENDS:${PN}-monitor += "bash"
+RDEPENDS:${PN} = "bash"
 
 SRC_URI += " \
             file://phosphor-multi-gpio-monitor.json \
             file://phosphor-multi-gpio-presence.json \
+            file://ampere_sys_auth_failure.sh \
            "
 
 SYSTEMD_SERVICE:${PN}-monitor += " \
@@ -15,6 +17,7 @@ SYSTEMD_SERVICE:${PN}-monitor += " \
 
 FILES:${PN}-monitor += " \
                         ${datadir}/${PN}/phosphor-multi-gpio-monitor.json \
+                        /usr/sbin/ampere_sys_auth_failure.sh \
                        "
 FILES:${PN}-presence += " \
                         ${datadir}/${PN}/phosphor-multi-gpio-presence.json \
@@ -24,4 +27,7 @@ do_install:append() {
     install -d ${D}${bindir}
     install -m 0644 ${WORKDIR}/phosphor-multi-gpio-monitor.json ${D}${datadir}/${PN}/
     install -m 0644 ${WORKDIR}/phosphor-multi-gpio-presence.json ${D}${datadir}/${PN}/
+
+    install -d ${D}${sbindir}
+    install -m 0755 ${WORKDIR}/ampere_sys_auth_failure.sh ${D}/${sbindir}/
 }

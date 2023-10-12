@@ -18,6 +18,7 @@
 #                                               0 => to switch SPI_CS0_L to second SPI Nor device
 
 # shellcheck disable=SC2046
+# shellcheck disable=SC2086
 
 do_flash () {
 	# always unbind then bind the ASpeed SMC driver again to prevent
@@ -54,7 +55,7 @@ if [ $# -eq 0 ]; then
 	echo "Usage: $(basename "$0") <UEFI/EDKII image file> <DEV_SEL> [SPECIAL_BOOT]"
 	echo "Where:"
 	echo "    DEV_SEL 1 is Primary SPI (by default), 2 is Second SPI"
-	echo "    SPECIAL_BOOT: Optional, input '1' to enter & flash SPECIAL_BOOT mode. Default: 0"
+	echo "    SPECIAL_BOOT: Optional, input '1' to flash "Secure Provisioning" image and enter Special Boot mode. Default: 0"
 	exit 0
 fi
 
@@ -106,16 +107,16 @@ if [[ $DEV_SEL == 1 ]]; then
 	echo "Run update Primary Host SPI-NOR"
 	gpioset $(gpiofind spi0-backup-sel)=1       # Primary SPI
 elif [[ $DEV_SEL == 2 ]]; then
-	echo "Run update Second Host SPI-NOR"
+	echo "Run update Secondary Host SPI-NOR"
 	gpioset $(gpiofind spi0-backup-sel)=0       # Second SPI
 else
 	echo "Please choose primary SPI (1) or second SPI (2)"
 	exit 0
 fi
 
-# Restrict to flash Second Host SPI-NOR in case of SPECIAL_BOOT
+# Restrict to flash Secondary Host SPI-NOR in case of SPECIAL_BOOT
 if [ $SPECIAL_BOOT == 1 ] && [ "$DEV_SEL" == 2 ]; then
-	echo "Not allow to flash the Second Host SPI-NOR with SPECIAL_BOOT image"
+	echo "Flashing 2nd Host SPI NOR image with SECProv image is not allowed"
 	exit
 fi
 
@@ -125,16 +126,20 @@ do_flash
 # Assert SPECIAL_BOOT GPIO PIN
 if [[ $SPECIAL_BOOT == 1 ]]; then
 	gpioset $(gpiofind host0-special-boot)=1
+	# Set HOST BOOTCOUNT to 0 to prevent Host reboot
+	busctl set-property xyz.openbmc_project.State.Host0 \
+		/xyz/openbmc_project/state/host0 \
+		xyz.openbmc_project.Control.Boot.RebootAttempts RetryAttempts u 0
 fi
 
-# Switch the SPI bus to the primary spi device
+# Switch the SPI bus to the primary SPI device
 echo "Switch to the Primary Host SPI-NOR"
 gpioset $(gpiofind spi0-backup-sel)=1       # Primary SPI
 
 # Switch the host SPI bus to HOST."
 echo "--- Switch the host SPI bus to HOST."
 if ! gpioset $(gpiofind spi0-program-sel)=0; then
-	echo "ERROR: Switch the host SPI bus to HOST. Please check gpio state"
+	echo "ERROR: Switch the host SPI bus to HOST. Please check GPIO state"
 	exit 1
 fi
 
@@ -145,18 +150,66 @@ then
 	obmcutil poweron
 fi
 
-# Deassert SPECIAL_BOOT GPIO PIN if it is being asserted
+# Detection SECProv of failure or success
 if [[ $SPECIAL_BOOT == 1 ]]; then
-	# Time out checking for Host ON is 60s
-	cnt=12
-	while [ "$cnt" -gt 0 ];
+	# 30s time out in wait for FW_BOOT_OK
+	state=0
+	cnt=60
+	while [ $cnt -gt 0 ];
 	do
-		cnt=$((cnt - 1))
-		if systemctl status obmc-host-already-on@0.target | grep "Active: active"; then
-			echo "Deassert SPECIAL_BOOT GPIO PIN if it is being asserted."
-			gpioset $(gpiofind host0-special-boot)=0
-			exit 0
+		# Monitor FW_BOOT_OK gpio
+		state=$(gpioget $(gpiofind s0-fw-boot-ok))
+		if [[ "$state" == "1" ]]; then
+			break
 		fi
-		sleep 5
+		sleep 0.5
+		cnt=$((cnt - 1))
 	done
+	if [[ "$cnt" == "0" ]]; then
+		echo "========================================="
+		echo "=                                       ="
+		echo "=   ERROR: FW_BOOT_OK IS NOT ASSERTED   ="
+		echo "=                                       ="
+		echo "========================================="
+	else
+		# 3s time out in wait for sys-auth-failure
+		cnt=6
+		while [ $cnt -gt 0 ];
+		do
+			# Monitor SYS_AUTH_FAILURE gpio
+			# The /tmp/secprov file is created when SYS_AUTH_FAILURE is asserted.
+			if [[ -f /tmp/secprov ]]; then
+				echo "============================="
+				echo "=                           ="
+				echo "=   ERROR: SECPROV FAILED   ="
+				echo "=                           ="
+				echo "============================="
+				break
+			fi
+			sleep 0.5
+			cnt=$((cnt - 1))
+		done
+
+		if [[ ! -f /tmp/secprov ]]; then
+			echo "======================================================================"
+			echo "=                                                                    ="
+			echo "=   SECPROV IS SUCCESSFUL, PLEASE RE-INSTALL THE NORMAL BOOT IMAGE   ="
+			echo "=                                                                    ="
+			echo "======================================================================"
+		fi
+	fi
+
+	echo "--- Turning the Chassis off"
+	obmcutil chassisoff
+
+	# Deassert SPECIAL_BOOT GPIO PIN
+	gpioset $(gpiofind host0-special-boot)=0
+
+	rm -f /tmp/secprov
+
+	sleep 10
+	# Recover HOST BOOTCOUNT to default
+	busctl set-property xyz.openbmc_project.State.Host0 \
+		/xyz/openbmc_project/state/host0 \
+		xyz.openbmc_project.Control.Boot.RebootAttempts RetryAttempts u 3
 fi
