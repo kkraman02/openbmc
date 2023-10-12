@@ -1,0 +1,68 @@
+From 50a5d6d003caec83d18fc167a120890fa7e41072 Mon Sep 17 00:00:00 2001
+From: Jayaprakash Mutyala <mutyalax.jayaprakash@intel.com>
+Date: Fri, 8 Sep 2023 10:30:28 +0000
+Subject: [PATCH 2/2] Handle SOL payload deactivation for stale session
+
+User is unable to deactivate active SOL session using IPMI command.
+To get SOL session ptr, getSession() from session manager was used,
+which throwing Session ID is not found error and Deactivate payload
+command not returning any response.
+
+So provided fix to use SOL session ptr obtained from Context to check
+if current session user has privilege to deactivate SOL payload.
+
+Tested:
+Verified using SOL IPMI commands.
+//Activate SOL
+~$ipmitool -I lanplus -H <BMC-IP> -U <UserID> -P <PWD> -C 17 raw 0x06
+          0x48 0x01 0x01 0xc0 0x00 0x00 0x00
+Response: 00 00 00 00 ff 00 ff 00 6f 02 ff ff
+//Deactivate SOL
+~$ipmitool -I lanplus -H <BMC-IP> -U <UserID> -P <PWD> -C 17 raw 0x06
+          0x49 0x01 0x01 0x00 0x00 0x00 0x00
+Response: Unable to send RAW command (channel=0x0 netfn=0x6 lun=0x0
+          cmd=0x49 rsp=0x80): Unknown (0x80)
+//Check Payload Activation status
+~$ipmitool -I lanplus -H <BMC-IP> -U <UserID> -P <PWD> -C 17 raw 0x06
+          0x4A 0x01
+Response: 01 00 00
+
+Signed-off-by: athuljox <athulx.joseph@intel.com>
+Signed-off-by: Jayaprakash Mutyala <mutyalax.jayaprakash@intel.com>
+Change-Id: I49b34a9f17fe356fc86cdecb44aac627c581ba0a
+---
+ command/payload_cmds.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/command/payload_cmds.cpp b/command/payload_cmds.cpp
+index e38473c..e2b154e 100644
+--- a/command/payload_cmds.cpp
++++ b/command/payload_cmds.cpp
+@@ -156,7 +156,8 @@ std::vector<uint8_t>
+         session::Manager::get().getSession(handler->sessionID);
+     auto solSessionID =
+         sol::Manager::get().getContext(request->payloadInstance).sessionID;
+-    auto solActiveSession = session::Manager::get().getSession(solSessionID);
++    auto solActiveSession =
++        sol::Manager::get().getContext(request->payloadInstance).session;
+     // The session owner or the ADMIN could deactivate the session
+     if (currentSession->userName != solActiveSession->userName &&
+         currentSession->currentPrivilege() !=
+@@ -181,9 +182,12 @@ std::vector<uint8_t>
+             /*
+              * In case session has been closed (like in the case of inactivity
+              * timeout), then activating function would throw an exception,
+-             * since solSessionID is not found. IPMI success completion code is
+-             * returned, since the session is closed.
++             * since solSessionID is not found. As session is already closed,
++             * returning IPMI status code for Payload already deactivated
++             * as BMC automatically deactivates all active payloads when
++             * session is terminated.
+              */
++            response->completionCode = IPMI_CC_PAYLOAD_DEACTIVATED;
+             return outPayload;
+         }
+     }
+-- 
+2.34.1
+
