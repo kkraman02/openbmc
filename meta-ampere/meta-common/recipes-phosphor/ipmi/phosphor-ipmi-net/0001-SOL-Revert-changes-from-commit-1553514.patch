@@ -1,0 +1,33 @@
+From a3a98238942965f6af9de77b27c4fea7cc57323c Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Thu, 12 Oct 2023 07:30:51 +0000
+Subject: [PATCH] SOL: Revert changes from commit 1553514
+
+Commit 1553514 causes ipmi SOL session to be deactivated when CPU
+reboots. This patch reverts the changes from the commit.
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+---
+ sol/sol_context.cpp | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/sol/sol_context.cpp b/sol/sol_context.cpp
+index 7bae1cb..ddd4833 100644
+--- a/sol/sol_context.cpp
++++ b/sol/sol_context.cpp
+@@ -43,12 +43,6 @@ void Context::enableAccumulateTimer(bool enable)
+ 
+     if (enable)
+     {
+-        auto bufferSize = sol::Manager::get().dataBuffer.size();
+-        if (bufferSize > sendThreshold)
+-        {
+-            charAccTimerHandler();
+-            return;
+-        }
+         accumulateTimer.expires_after(interval);
+         std::weak_ptr<Context> weakRef = weak_from_this();
+         accumulateTimer.async_wait(
+-- 
+2.25.1
+
