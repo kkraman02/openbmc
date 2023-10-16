@@ -9,6 +9,11 @@ AST2X00_GPIO_BASE=(
     "$GPIO_CHIP1_BASE"
 )
 
+function gpio_number() {
+	GPIO_BASE=$(cat /sys/class/gpio/gpiochip"$GPIO_CHIP0_BASE"/base)
+	echo $((GPIO_BASE + $1))
+}
+
 function gpio_configure_output() {
 	echo "$1" > /sys/class/gpio/export
 	echo out > /sys/class/gpio/gpio"$1"/direction
