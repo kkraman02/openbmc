@@ -18,7 +18,9 @@
 # Usage: ampere_uartmux_ctrl.sh <CPU UART port number> <UARTx_MODE>
 #        <UARTx_MODE> of 1 sets CPU To HDR_CONN
 #        <UARTx_MODE> of 2 sets BMC to CPU (eg dropbear ssh server on port 2200)
+#
 # shellcheck disable=SC2046
+# This can be called to set uart mux manually
 
 if [ $# -lt 2 ]; then
 	exit 1
@@ -45,25 +47,17 @@ esac
 echo "Ampere UART MUX CTRL UART port $1 to mode $2"
 
 case "$2" in
-	1)
-		if gpiofind "$GPIO_UARTx_MODE0"; then
-			gpioset $(gpiofind "$GPIO_UARTx_MODE0")=1
-		fi
-		if gpiofind "$GPIO_UARTx_MODE1"; then
-			gpioset $(gpiofind "$GPIO_UARTx_MODE1")=0
-		fi
+	# To HDR
+	1) gpioset $(gpiofind "$GPIO_UARTx_MODE0")=1
+		gpioset $(gpiofind "$GPIO_UARTx_MODE1")=0
 		exit 0
-		;;
-	2)
-		if gpiofind "$GPIO_UARTx_MODE0"; then
-			gpioset $(gpiofind "$GPIO_UARTx_MODE0")=0
-		fi
-		if gpiofind "$GPIO_UARTx_MODE1"; then
-			gpioset $(gpiofind "$GPIO_UARTx_MODE1")=1
-		fi
+	;;
+	# To BMC
+	2) gpioset $(gpiofind "$GPIO_UARTx_MODE0")=0
+		gpioset $(gpiofind "$GPIO_UARTx_MODE1")=1
 		exit 0
-		;;
+	;;
 	*) echo "Invalid UART mode selection"
-	   exit 1
+		exit 1
 	;;
 esac
