@@ -6,13 +6,13 @@ It is expected that users have previous knowledge on developing OpenBMC. Otherwi
 
 ## Ampere OpenBMC Repositories
 
-- [linux][4]: Ampere Linux kernel, cloned from OpenBMC linux kernel and adds Mt.Jade device tree and other drivers listed in this document.
+- [linux][4]: Ampere Linux kernel, forked from OpenBMC linux kernel and adds more changes (device tree, drivers, ...) to fully support Ampere required features.
 - [ssifbridged][1]: bridging between BMC SSIF driver and IPMI daemon. 
-- [ampere-ipmi-oem][3]: Ampere IPMI OEM. Refer to its README file for the IPMI commands it supports.
-- [ampere-platform-mgmt][2]: contain to handle Altra error monitoring and some utilities for flashing EEPROM.
+- [ampere-ipmi-oem][3]: Ampere IPMI OEM. Refer to [README](https://github.com/ampere-openbmc/ampere-ipmi-oem/blob/ampere/README.md) file for all IPMI commands supported.
+- [ampere-platform-mgmt][2]: handle Altra error monitoring and some utilities for flashing EEPROM.
 - [ampere-misc](https://github.com/ampere-openbmc/ampere-misc): contain applications that provide workaround or temporary solutions that will be replaced later.
-- [libmctp](https://github.com/ampere-openbmc/libmctp): Ampere libmctp, cloned from https://github.com/openbmc/libmctp with adding SMBUS support and some missing features for MCTP to work.
-- [pldm](https://github.com/ampere-openbmc/pldm): Ampere pldm, cloned from https://github.com/openbmc/pldm with adding sensor and RAS support.
+- [libmctp](https://github.com/ampere-openbmc/libmctp): Ampere libmctp, forked from https://github.com/openbmc/libmctp with adding SMBUS support and some missing features for MCTP to work.
+- [pldm](https://github.com/ampere-openbmc/pldm): Ampere pldm, forked from https://github.com/openbmc/pldm with adding sensors and RAS support.
 
 ## Directory Structure
 
@@ -31,7 +31,7 @@ Where: platform = mtjade, mtmitchell, ...
 
 - `meta-ampere/meta-common/recipes-ampere `: Contain Ampere-specific (but not platform specific) features, include:
 	- host
-		- [`ampere-hostctrl`](https://github.com/openbmc/openbmc/tree/master/meta-ampere/meta-common/recipes-ampere/host/ampere-hostctrl): contain services to check host state and host reset (via `SYS_RESET` pin)
+		- [`ampere-hostctrl`](https://github.com/openbmc/openbmc/tree/master/meta-ampere/meta-common/recipes-ampere/host/ampere-hostctrl): contain Ampere services to support Host control operations like for reset (via `SYS_RESET` pin), check if Host is already ON, ...
 		- [`ac01-boot-progress`](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-common/recipes-ampere/host/ac01-boot-progress): check boot progress from Altra-based Host, update to dbus and log events to Redfish EventLog.
 		- [`ac01-openocd`](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-common/recipes-ampere/host/ac01-openocd.bb): OpenOCD support for Altra silicon.
 		- [`ac03-openocd`](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-common/recipes-ampere/host/ac03-openocd.bb): OpenOCD support for AmpereOne silicon.
@@ -43,38 +43,19 @@ Where: platform = mtjade, mtmitchell, ...
 - `meta-ampere/meta-common/recipes-phosohor`: Contain common features that can be used in different platforms.
 	- flash
 		- [`phosphor-software-manager`](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-common/recipes-phosphor/flash/phosphor-software-manager): backend script to flash Host firmware.
-- `meta-ampere/meta-jade/recipes-ampere `: Mt.Jade specific configuration, or contains some Mt.Jade specific configuration.
-	- host
-		- [`ampere-platform-mgmt`](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-jade/recipes-ampere/host/ampere-platform-mgmt): application to monitor Host errors and log events.
-	- platform
-		- [`ampere-mac-update`](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-jade/recipes-ampere/platform/ampere-mac-update): check BMC MAC Address from FRU's Board Extra and update the `eth1addr` u-boot variable.
-- `meta-ampere/meta-jade/recipes-phosphor `: configure phosphor recipes with Mt.Jade specific information.
+- `meta-ampere/meta-<platform>/recipes-ampere `: platform specific features.
+- `meta-ampere/meta-<platform>/recipes-phosphor `: configure phosphor recipes with platform specific information.
 	- [`gpio`](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-jade/recipes-phosphor/gpio): `phosphor-gpio-monitor` based GPIO application to handle GPIOs from Altra silicon.
 
 ## Linux kernel
 
 Refer to [Ampere Linux kernel][4] for drivers and [device tree][12] for reference.
 
-### Kernel drivers
+## Altra Host sensors and RAS report
 
-Below kernel drivers are required for Ampere based platforms:
+For Altra-based platforms, do the followings to enable Host sensor monitoring and RAS error reporting:
 
-* [BMC SSIF driver](https://github.com/openbmc/linux/blob/dev-6.0/drivers/char/ipmi/ssif_bmc.c), enabled by the `CONFIG_SSIF_IPMI_BMC`
-* [smpro-hwmon, smpro-errmon and smpro-misc](https://lwn.net/Articles/853975/) Linux hwmon driver, enabled by below kernel config:
-
-	```
-	CONFIG_HWMON=y
-	CONFIG_MFD_SIMPLE_MFD_I2C=y
-	CONFIG_MFD_CORE=y
-	CONFIG_REGMAP_I2C=y
-	CONFIG_MFD_SMPRO=y
-	CONFIG_SMPRO_MISC=y
-	CONFIG_SMPRO_ERRMON=y
-	```
-
-### Device Tree
-
-* Altra smpro-hwmon, errmon and misc device nodes:
+- Add smpro nodes to the device tree:
 
 	```
 		smpro@4f {
@@ -82,7 +63,31 @@ Below kernel drivers are required for Ampere based platforms:
 			reg = <0x4f>;
 		};
 	```
-* bmc-ssif device node
+
+- Enable below kernel configurations to compile the [smpro-hwmon](https://github.com/openbmc/linux/blob/dev-6.1/drivers/hwmon/smpro-hwmon.c), [smpro-errmon](https://github.com/openbmc/linux/blob/dev-6.1/drivers/misc/smpro-errmon.c) and [smpro-misc](https://github.com/openbmc/linux/blob/dev-6.1/drivers/misc/smpro-misc.c) Linux drivers
+	```
+	CONFIG_HWMON=y
+	CONFIG_MFD_SMPRO=y
+	CONFIG_SMPRO_MISC=y
+	CONFIG_SMPRO_ERRMON=y
+	```
+
+- Add [`ampere-driver-binder`](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-common/recipes-ampere/platform/ampere-driver-binder.bb) recipe is supported to check and bind the smpro-hwmon, smpro-errmon and smpro-misc when the Host is booted (if not bound before). Porting to the new platform just needs to clone the code and update the [`drivers-conf.sh`](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-jade/recipes-ampere/host/ampere-driver-binder/drivers-conf.sh) script if any change in the I2C addresses.
+
+- Add AmpereCPU device with [45334](https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45334), [45336](https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45336) and [45335](https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45335) commits to support monitor the hwmon changes, update information to dbus.
+  
+- Define sensor information in the entity-manager config. Refer to [Mt.Jade.json](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-jade/recipes-phosphor/configuration/entity-manager/Mt_Jade.json). It is good to copy the node with `"Type":"smpro_hwmon"` and update I2C bus/address information for the new platform.
+
+- Add [ampere-platform-mgmt][2]'s `altra/host-monitor/error-monitor` application with configuration to enable RAS error monitoring. Refer to Mt.Jade [`ampere-platform-mgmt.bb `](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-jade/recipes-ampere/host/ampere-platform-mgmt.bb) recipe for reference.
+
+ - Enable [ac01-boot-progress](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-common/recipes-ampere/host/ac01-boot-progress) to monitor Host boot progress and update status to dbus.
+
+
+## IPMI SSIF
+
+IPMI SSIF enables in-band IPMI communication between BMC and Host over I2C/SMBUS. To enable IPMI SSIF driver support, do the followings:
+
+- Add bmc-ssif device node
 
 	```
         ssif-bmc@10 {
@@ -91,9 +96,7 @@ Below kernel drivers are required for Ampere based platforms:
         };
 	```
 
-## IPMI SSIF
-
-IPMI SSIF enables in-band IPMI communication between BMC and Host over I2C/SMBUS. To enable IPMI SSIF driver support, do the followings:
+- Enable `CONFIG_SSIF_IPMI_BMC` kernel config which will compile the [BMC SSIF driver](https://github.com/openbmc/linux/blob/dev-6.1/drivers/char/ipmi/ssif_bmc.c). 
 
 - Enable `obmc-host-ipmi-hw` with `phosphor-ipmi-ssif` in [board config](https://github.com/openbmc/openbmc/blob/master/meta-ampere/meta-jade/conf/machine/mtjade.conf) file:
 ```
@@ -117,55 +120,12 @@ PREFERRED_PROVIDER_virtual/obmc-host-ipmi-hw = "phosphor-ipmi-ssif"
 	}
 ```
 
-Ensure the `ssifbridge.service` service starts correctly and `/dev/ipmi-ssif-host` device node exists:
+- Check to ensure the `ssifbridge.service` service starts correctly and `/dev/ipmi-ssif-host` device node exists:
 
 ```
-# systemctl status ssifbridge.service
-# ls /dev/ipmi-ssif-host
+	# systemctl status ssifbridge.service
+	# ls /dev/ipmi-ssif-host
 ```
-
-## Altra CPU Sensors and Error Report
-
-Working on Altra CPU sensors and error report requires the smpro-hwmon, smpro-errmon and smpro-misc drivers added and enabled. In addition, the drivers need to be bound when powering ON the Host.
-
-The [`ampere-driver-binder`](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-common/recipes-ampere/platform/ampere-driver-binder.bb) recipe is supported to check and bind the smpro-hwmon, smpro-errmon and smpro-misc when the Host is booted (if not bound before).
-
-Porting to the new platform just needs to clone the code and update the [`drivers-conf.sh`](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-jade/recipes-ampere/host/ampere-driver-binder/drivers-conf.sh) script if any change in the I2C addresses.
-
-Below features assume that smpro drivers are already added, enabled and bound.
-
-### Altra CPU Sensors
-
-Altra CPU sensors feature work as below:
-
-* The `smpro-hwmon` driver implements the hwmon framework which monitor register offset 0x10 - 0x4F (refer to the `Altra SoC BMC Interface Specification` document) and export /sys interface for sensors.
-* The [`dbus-sensors`][9] application supports AmpereCPU driver ([45334](https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45334), [45336](https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45336) and [45335](https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45335)) that monitor the sensors, update information to dbus. Sensor information, include threshold information) is defined in the entity-manager configuration file.
-
-To support Altra CPU sensors on new platform:
-
-* Add `smpro-hwmon` driver with device tree node and enable it.
-* Add AmpereCPU dbus-driver support (port and use patches inside dbus-sensor recipe) while the code is still in review.
-* Define sensor information in the entity-manager config. Refer to [Mt.Jade.json](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-jade/recipes-phosphor/configuration/entity-manager/Mt_Jade.json). It is good to copy the node with `"Type":"smpro_hwmon"` and update I2C bus/address information for the new platform.
-
-
-### Altra CPU Error Report
-
-Altra CPU Error Reporting checks Altra CPU error information from its registers (0x50 - 0xAD) and log error information in IPMI SEL and Redfish EventLog.
-
-Support Altra CPU Error Report requires the followings:
-
-- Add `smpro-errmon` driver with device tree node and enable it.
-- Add [ampere-platform-mgmt][2]'s `altra/host-monitor/error-monitor` application with configuration. Refer to Mt.Jade [`ampere-platform-mgmt.bb `](https://github.com/ampere-openbmc/openbmc/blob/ampere/meta-ampere/meta-jade/recipes-ampere/host/ampere-platform-mgmt.bb) recipe for reference.
-
-### Altra Boot Progress Handling
-
-The Boot Progress feature does the followings:
-
-* Check for boot progress from smpro-misc's boot-progress /sys interface.
-* Map the boot progress to dbus
-* Check for DIMM Syndrom error when detecting DDR initialization failure. The DIMM errors will be logged to Redfish EventLog. 
-
-To port this feature, clone the code at  [meta-ampere/meta-common/recipes-ac01/host/boot-progress](https://github.com/ampere-openbmc/openbmc/tree/ampere/meta-ampere/meta-common/recipes-ac01/host/boot-progress) to the new platform. No change is required.
 
 ## AmpereOne CPU Sensors and Error Report
 
