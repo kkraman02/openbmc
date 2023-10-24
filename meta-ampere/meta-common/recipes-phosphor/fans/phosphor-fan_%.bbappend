@@ -9,4 +9,5 @@ PACKAGECONFIG[monitor-use-host-state] = "-Dmonitor-use-host-state=enabled"
 
 SRC_URI += " \
             file://0001-Change-count_state_before_target-behavior.patch \
+            file://0002-Use-generic-interface-to-look-for-configs.patch \
            "

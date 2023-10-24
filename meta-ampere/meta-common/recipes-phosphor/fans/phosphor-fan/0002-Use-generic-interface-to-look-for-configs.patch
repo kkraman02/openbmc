@@ -1,0 +1,530 @@
+From 5d8a59186bb97197019c4368ad10af9c0009c345 Mon Sep 17 00:00:00 2001
+From: Chau Ly <chaul@amperecomputing.com>
+Date: Tue, 19 Sep 2023 08:07:42 +0000
+Subject: [PATCH] Use generic interface to look for configs
+
+IBM has specific interface IBMCompatibleSystem to look for the
+compatible system location under which the configs are placed. The
+Entity Manager schema for the property under this interface and the
+interface name itself can't be generic for other meta systems.
+To find a more common interface, this should be the one that is probed
+together with chassis and has its property value corresponding to
+system's name.
+
+This commit proposes the use of the property PrettyName under the
+interface xyz.openbmc_project.Inventory.Item [1]. The property can be
+configured in chassis's Entity Manager json configuration by custom
+string or by any variable probed by FruDevice daemon.
+
+The IBMCompatibleSystem can still be used via the build option
+use-ibm-compatible-system.
+
+[1] https://github.com/openbmc/phosphor-dbus-interfaces/blob/\
+262b9220e59434f8031d9dc24e481b28f420c73a/yaml/xyz/openbmc_project/\
+Inventory/Item.interface.yaml#L10
+
+Tested in Ampere's Mt.Mitchell platform.
+
+1. Configure the interface in Motherboard's Entity Manager config:
+"xyz.openbmc_project.Inventory.Item": {
+            "PrettyName": "mtmitchell",
+            "Present": true
+        }
+2. Configs are already placed under
+/usr/share/phosphor-fan-presence/<daemon>/mtmitchell/
+3. When Entity Manager config is probed:
+$ busctl call -j xyz.openbmc_project.ObjectMapper \
+/xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper \
+GetSubTreePaths sias / 0 1 xyz.openbmc_project.Inventory.Item
+{
+  "type": "a{sa{sas}}",
+  "data": [
+    [
+       "/xyz/openbmc_project/inventory/system/board/\
+Mt_Mitchell_Motherboard" : {
+           "xyz.openbmc_project.EntityManager" : [
+                "xyz.openbmc_project.AddObject",
+                "xyz.openbmc_project.Common.UUID",
+                "xyz.openbmc_project.Inventory.Decorator.Asset",
+                "xyz.openbmc_project.Inventory.Item",
+                "xyz.openbmc_project.Inventory.Item.Board"
+           ]
+         }
+    ]
+  ]
+}
+
+$ busctl get-property xyz.openbmc_project.EntityManager \
+/xyz/openbmc_project/inventory/system/board/Mt_Mitchell_Motherboard \
+xyz.openbmc_project.Inventory.Item PrettyName
+s "mtmitchell"
+4. When phosphor-fan's daemon starts, it can successfully find
+configs under the folder "mtmitchell"
+
+Signed-off-by: Chau Ly <chaul@amperecomputing.com>
+Change-Id: I55107f1c2a78e78ba7cea650b8eaeaf4fd615d2b
+---
+ docs/control/README.md  |  16 +++-
+ docs/monitor/README.md  |  18 ++--
+ docs/presence/README.md |  18 ++--
+ json_config.hpp         | 177 +++++++++++++++++++++++++++-------------
+ meson.build             |   4 +
+ meson.options           |   5 ++
+ 6 files changed, 169 insertions(+), 69 deletions(-)
+
+diff --git a/docs/control/README.md b/docs/control/README.md
+index 9a6490e..f5dfd3c 100644
+--- a/docs/control/README.md
++++ b/docs/control/README.md
+@@ -57,15 +57,23 @@ i.e.)
+ `/usr/share/phosphor-fan-presence/control/groups.json`  
+ `/usr/share/phosphor-fan-presence/control/events.json`
+ 
+-#### Compatible System Type Location
++#### System Type Location
+ 
+ The config files location can also be based on a system type. This is necessary
+ where more than one type of machine is supported in a single BMC firmware image
+ and those system types can not share any one common config file.
+ 
+-A system type sub-directory can be obtained from the `IBMCompatibleSystem` D-Bus
+-interface's `Names` property. The `Names` property contains a list of one or
+-more compatible system types, ordered from most specific to the most general.
++A system type sub-directory can be obtained from the `Inventory.Item` D-Bus
++interface's `PrettyName` property. The property holds the system name in string.
++
++If more than one string is found from D-Bus, the `phosphor-fan-control`
++application then appends each system name string as a sub-directory on each
++config file to look for the one that really contains the configs.
++
++If use-ibm-compatible-system option is configured, the `IBMCompatibleSystem`
++D-Bus interface's `Names` property will be used. The `Names` property contains a
++list of one or more compatible system types, ordered from most specific to the
++most general.
+ 
+ Example:
+ 
+diff --git a/docs/monitor/README.md b/docs/monitor/README.md
+index db0c31f..75442c2 100644
+--- a/docs/monitor/README.md
++++ b/docs/monitor/README.md
+@@ -50,15 +50,23 @@ file can be located at the base of the supported directory.
+ 
+ i.e.) `/usr/share/phosphor-fan-presence/monitor/config.json`
+ 
+-#### Compatible System Type Location
++#### System Type Location
+ 
+ The config file location can also be based on a system type. This is necessary
+ where more than one type of machine is supported in a single BMC firmware image
+ and those system types can not share a common config file.
+ 
+-A system type sub-directory can be obtained from the `IBMCompatibleSystem` D-Bus
+-interface's `Names` property. The `Names` property contains a list of one or
+-more compatible system types, ordered from most specific to the most general.
++A system type sub-directory can be obtained from the `Inventory.Item` D-Bus
++interface's `PrettyName` property. The property holds the system name in string.
++
++If more than one string is found from D-Bus, the `phosphor-fan-monitor`
++application then appends each system name string as a sub-directory on each
++config file to look for the one that really contains the configs.
++
++If use-ibm-compatible-system option is configured, the `IBMCompatibleSystem`
++D-Bus interface's `Names` property will be used. The `Names` property contains a
++list of one or more compatible system types, ordered from most specific to the
++most general.
+ 
+ Example:
+ 
+@@ -67,7 +75,7 @@ Example:
+ 
+ The `phosphor-fan-monitor` application then traverses the supported directory,
+ appending each compatible system type entry as a sub-directory from most
+-specific to most general until the config file is found.
++specific to most general on each config file until it is found.
+ 
+ Example:
+ 
+diff --git a/docs/presence/README.md b/docs/presence/README.md
+index 6f94a6e..7d9f3ce 100644
+--- a/docs/presence/README.md
++++ b/docs/presence/README.md
+@@ -48,15 +48,23 @@ file can be located at the base of the supported directory.
+ 
+ i.e.) `/usr/share/phosphor-fan-presence/presence/config.json`
+ 
+-#### Compatible System Type Location
++#### System Type Location
+ 
+ The config file location can also be based on a system type. This is necessary
+ where more than one type of machine is supported in a single BMC firmware image
+ and those system types can not share a common config file.
+ 
+-A system type sub-directory can be obtained from the `IBMCompatibleSystem` D-Bus
+-interface's `Names` property. The `Names` property contains a list of one or
+-more compatible system types, ordered from most specific to the most general.
++A system type sub-directory can be obtained from the `Inventory.Item` D-Bus
++interface's `PrettyName` property. The property holds the system name in string.
++
++If more than one string is found from D-Bus, the `phosphor-fan-presence-tach`
++application then appends each system name string as a sub-directory on each
++config file to look for the one that really contains the configs.
++
++If use-ibm-compatible-system option is configured, the `IBMCompatibleSystem`
++D-Bus interface's `Names` property will be used. The `Names` property contains a
++list of one or more compatible system types, ordered from most specific to the
++most general.
+ 
+ Example:
+ 
+@@ -65,7 +73,7 @@ Example:
+ 
+ The `phosphor-fan-presence-tach` application then traverses the supported
+ directory, appending each compatible system type entry as a sub-directory from
+-most specific to most general until the config file is found.
++most specific to most general on each config file until it is found.
+ 
+ Example:
+ 
+diff --git a/json_config.hpp b/json_config.hpp
+index c3f041f..29c840a 100644
+--- a/json_config.hpp
++++ b/json_config.hpp
+@@ -15,6 +15,8 @@
+  */
+ #pragma once
+ 
++#include "config.h"
++
+ #include "sdbusplus.hpp"
+ 
+ #include <nlohmann/json.hpp>
+@@ -35,10 +37,15 @@ using namespace phosphor::logging;
+ 
+ constexpr auto confOverridePath = "/etc/phosphor-fan-presence";
+ constexpr auto confBasePath = "/usr/share/phosphor-fan-presence";
+-constexpr auto confCompatServ = "xyz.openbmc_project.EntityManager";
+-constexpr auto confCompatIntf =
++constexpr auto entityManagerServ = "xyz.openbmc_project.EntityManager";
++#ifdef USE_IBM_COMPATIBLE_SYSTEM
++constexpr auto confDBusInf =
+     "xyz.openbmc_project.Configuration.IBMCompatibleSystem";
+-constexpr auto confCompatProp = "Names";
++constexpr auto confDBusProp = "Names";
++#else
++constexpr auto confDBusInf = "xyz.openbmc_project.Inventory.Item";
++constexpr auto confDBusProp = "PrettyName";
++#endif
+ 
+ /**
+  * @class NoConfigFound - A no JSON configuration found exception
+@@ -79,118 +86,157 @@ class JsonConfig
+ {
+   public:
+     /**
+-     * @brief Get the object paths with the compatible interface
++     * @brief Get the object paths with the config DBus interface
+      *
+-     * Retrieve all the object paths implementing the compatible interface for
++     * Retrieve all the object paths implementing the interface for
+      * configuration file loading.
+      */
+-    static auto& getCompatObjPaths() __attribute__((pure))
++    static auto& getConfigObjPaths() __attribute__((pure))
+     {
+         static auto paths = util::SDBusPlus::getSubTreePathsRaw(
+-            util::SDBusPlus::getBus(), "/", confCompatIntf, 0);
++            util::SDBusPlus::getBus(), "/", confDBusInf, 0);
+         return paths;
+     }
+ 
+     /**
+      * @brief Constructor
+      *
+-     * Attempts to set the list of compatible values from the compatible
+-     * interface and call the fan app's function to load its config file(s). If
+-     * the compatible interface is not found, it subscribes to the
+-     * interfacesAdded signal for that interface on the compatible service
+-     * defined above.
++     * Attempts to set the list of values from the IBM compatible interface
++     * (if configured) or the inventory item interface and call the fan
++     * app's function to load its config file(s). If the interface is not
++     * found, it subscribes to the interfacesAdded signal for that interface
++     * on the EntityManager service defined above.
+      *
+      * @param[in] func - Fan app function to call to load its config file(s)
+      */
+     JsonConfig(std::function<void()> func) : _loadFunc(func)
+     {
+-        std::vector<std::string> compatObjPaths;
++        std::vector<std::string> objPaths;
+ 
+         _match = std::make_unique<sdbusplus::bus::match_t>(
+             util::SDBusPlus::getBus(),
+             sdbusplus::bus::match::rules::interfacesAdded() +
+-                sdbusplus::bus::match::rules::sender(confCompatServ),
+-            std::bind(&JsonConfig::compatIntfAdded, this,
+-                      std::placeholders::_1));
++                sdbusplus::bus::match::rules::sender(entityManagerServ),
++            std::bind(&JsonConfig::confIntfAdded, this, std::placeholders::_1));
+ 
+         try
+         {
+-            compatObjPaths = getCompatObjPaths();
++            objPaths = getConfigObjPaths();
+         }
+         catch (const util::DBusMethodError&)
+         {
+-            // Compatible interface does not exist on any dbus object yet
++            // The config D-Bus interface does not exist on any dbus object yet
+         }
+ 
+-        if (!compatObjPaths.empty())
++        if (!objPaths.empty())
+         {
+-            for (auto& path : compatObjPaths)
++            for (auto& path : objPaths)
+             {
+                 try
+                 {
+-                    // Retrieve json config compatible relative path
+-                    // locations (last one found will be what's used if more
+-                    // than one dbus object implementing the comptaible
+-                    // interface exists).
+-                    _confCompatValues =
++#ifdef USE_IBM_COMPATIBLE_SYSTEM
++                    // last one found will be what's used if more
++                    // than one dbus object implementing the compatible
++                    // interface exists
++                    _confPropVals =
+                         util::SDBusPlus::getProperty<std::vector<std::string>>(
+-                            util::SDBusPlus::getBus(), path, confCompatIntf,
+-                            confCompatProp);
++                            util::SDBusPlus::getBus(), path, confDBusInf,
++                            confDBusProp);
++#else
++                    // archive all the results to look for the correct one later
++                    std::string propValue =
++                        util::SDBusPlus::getProperty<std::string>(
++                            util::SDBusPlus::getBus(), path, confDBusInf,
++                            confDBusProp);
++                    _confPropVals.emplace_back(propValue);
++#endif
+                 }
+                 catch (const util::DBusError&)
+                 {
+-                    // Compatible property unavailable on this dbus object
+-                    // path's compatible interface, ignore
++                    // The config D-Bus property unavailable on this dbus object
++                    // path's target interface, ignore
+                 }
+             }
++#ifdef USE_IBM_COMPATIBLE_SYSTEM
+             _loadFunc();
++#else
++            try
++            {
++                _loadFunc();
++            }
++            catch (const NoConfigFound&)
++            {
++                // Wait for interfacesAdded signal
++            }
++#endif
+         }
++        // Check if required config(s) are found not needing the
++        // config interface, otherwise this is intended to catch the
++        // exception thrown by the getConfFile function when the
++        // required config file was not found. This would then result in
++        // waiting for the compatible interfacesAdded signal
+         else
+         {
+-            // Check if required config(s) are found not needing the
+-            // compatible interface, otherwise this is intended to catch the
+-            // exception thrown by the getConfFile function when the
+-            // required config file was not found. This would then result in
+-            // waiting for the compatible interfacesAdded signal
+             try
+             {
+                 _loadFunc();
+             }
+             catch (const NoConfigFound&)
+             {
+-                // Wait for compatible interfacesAdded signal
++                // Wait for interfacesAdded signal
+             }
+         }
+     }
+ 
+     /**
+-     * @brief InterfacesAdded callback function for the compatible interface.
++     * @brief InterfacesAdded callback function for the needed interface.
+      *
+      * @param[in] msg - The D-Bus message contents
+      *
+-     * If the compatible interface is found, it uses the compatible property on
+-     * the interface to set the list of compatible values to be used when
+-     * attempting to get a configuration file. Once the list of compatible
+-     * values has been updated, it calls the load function.
++     * If the config interface is found, it uses the property under
++     * the interface to set the list of property values to be used when
++     * attempting to get a configuration file. Once the list of value
++     * has been updated, it calls the load function. If the configs have
++     * been loaded, it won't process further.
+      */
+-    void compatIntfAdded(sdbusplus::message_t& msg)
++    void confIntfAdded(sdbusplus::message_t& msg)
+     {
++        // Avoid processing any interface added when there's already a
++        // valid sub-directory name to look for configs. _systemName is
++        // cleared when getConfFile() fails to find configs under this
++        // folder name.
++        if (!_systemName.empty())
++        {
++            return;
++        }
++
+         sdbusplus::message::object_path op;
+         std::map<std::string,
+-                 std::map<std::string, std::variant<std::vector<std::string>>>>
++                 std::map<std::string,
++                          std::variant<std::vector<std::string>, std::string>>>
+             intfProps;
+ 
+         msg.read(op, intfProps);
+ 
+-        if (intfProps.find(confCompatIntf) == intfProps.end())
++        if (intfProps.find(confDBusInf) == intfProps.end())
+         {
++            // Can't find config D-Bus interface;
+             return;
+         }
+ 
+-        const auto& props = intfProps.at(confCompatIntf);
+-        // Only one dbus object with the compatible interface is used at a time
+-        _confCompatValues =
+-            std::get<std::vector<std::string>>(props.at(confCompatProp));
++        const auto& props = intfProps.at(confDBusInf);
++
++#ifdef USE_IBM_COMPATIBLE_SYSTEM
++        // Only one dbus object with the compatible interface is used at a
++        // time
++        _confPropVals =
++            std::get<std::vector<std::string>>(props.at(confDBusProp));
++#else
++        std::string propVal = std::get<std::string>(props.at(confDBusProp));
++        _confPropVals.emplace_back(propVal);
++#endif
++
++        // Let it throw here if no config is found after many efforts
+         _loadFunc();
+     }
+ 
+@@ -202,9 +248,12 @@ class JsonConfig
+      * 2.) From the default confBasePath location
+      * 3.) From config file found using an entry from a list obtained from an
+      * interface's property as a relative path extension on the base path where:
+-     *     interface = Interface set in confCompatIntf with the property
+-     *     property = Property set in confCompatProp containing a list of
++     *     interface = Interface set in confDBusIntf with the property
++     * if USE_IBM_COMPATIBLE_SYSTEM is defined:
++     *     property = Property set in confDBusProp containing a list of
+      *                subdirectories in priority order to find a config
++     * else:
++     *     property = Property set in confDBusProp containing a string
+      *
+      * @brief Get the configuration file to be used
+      *
+@@ -235,15 +284,18 @@ class JsonConfig
+ 
+         // Look for a config file at each entry relative to the base
+         // path and use the first one found
+-        auto it =
+-            std::find_if(_confCompatValues.begin(), _confCompatValues.end(),
++        auto confPropValsIt =
++            std::find_if(_confPropVals.begin(), _confPropVals.end(),
+                          [&confFile, &appName, &fileName](const auto& value) {
+             confFile = fs::path{confBasePath} / appName / value / fileName;
++            _systemName = value;
+             return fs::exists(confFile);
+             });
+-        if (it == _confCompatValues.end())
++
++        if (confPropValsIt == _confPropVals.end())
+         {
+             confFile.clear();
++            _systemName.clear();
+         }
+ 
+         if (confFile.empty() && !isOptional)
+@@ -313,7 +365,7 @@ class JsonConfig
+      */
+     static const std::vector<std::string>& getCompatValues()
+     {
+-        return _confCompatValues;
++        return _confPropVals;
+     }
+ 
+   private:
+@@ -327,13 +379,28 @@ class JsonConfig
+     std::unique_ptr<sdbusplus::bus::match_t> _match;
+ 
+     /**
+-     * @brief List of compatible values from the compatible interface
++     * @brief List of property values from the config D-Bus interface
+      *
++     * if USE_IBM_COMPATIBLE_SYSTEM is defined:
+      * Only supports a single instance of the compatible interface on a dbus
+      * object. If more than one dbus object exists with the compatible
+      * interface, the last one found will be the list of compatible values used.
++     * else:
++     * If more than one dbus object exists with the inventory item interface,
++     * all will be archived to look for the correct one later (the one that
++     * contains the config files when acting as a sub-directory).
+      */
+-    inline static std::vector<std::string> _confCompatValues;
++    inline static std::vector<std::string> _confPropVals;
++
++    /**
++     * @brief The property value that is currently used as the system location
++     *
++     * The value extracted from the achieved property value list that is used
++     * as a system location to append on each config file as a sub-directory to
++     * look for the config files and really contains them.
++     */
++
++    inline static std::string _systemName;
+ };
+ 
+ } // namespace phosphor::fan
+diff --git a/meson.build b/meson.build
+index e547e4f..a8ff95b 100644
+--- a/meson.build
++++ b/meson.build
+@@ -90,6 +90,10 @@ usr_share_dir = '/usr/share/phosphor-fan-presence'
+ 
+ conf = configuration_data()
+ 
++if get_option('use-ibm-compatible-system').enabled()
++    conf.set('USE_IBM_COMPATIBLE_SYSTEM', '')
++endif
++
+ # Control
+ conf.set_quoted(
+     'CONTROL_PERSIST_ROOT_PATH', get_option('control-persist-root-path'))
+diff --git a/meson.options b/meson.options
+index 3344cbd..03a169e 100644
+--- a/meson.options
++++ b/meson.options
+@@ -128,3 +128,8 @@ option(
+     'use-host-power-state', type: 'feature', value: 'disabled',
+     description: 'Enable using the host power state for power state checks.'
+ )
++
++option(
++    'use-ibm-compatible-system', type: 'feature', value: 'disabled',
++    description: 'Enable using IBM compatible system string.'
++)
+-- 
+2.25.1
+
