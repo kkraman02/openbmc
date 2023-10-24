@@ -4,7 +4,8 @@ PACKAGECONFIG:append = " json"
 
 SRC_URI:append = " file://events.json \
                               file://fans.json \
-                              file://groups.json \
+                              file://groups_1p.json \
+                              file://groups_2p.json \
                               file://zones.json \
                               file://monitor.json \
                               file://presence.json \
@@ -13,23 +14,31 @@ SRC_URI:append = " file://events.json \
                               file://phosphor-fan-presence-tach@.service \
 "
 
-do_configure:prepend () {
-        mkdir -p ${S}/control/config_files/${MACHINE}
-        cp ${WORKDIR}/events.json ${S}/control/config_files/${MACHINE}/events.json
-        cp ${WORKDIR}/fans.json ${S}/control/config_files/${MACHINE}/fans.json
-        cp ${WORKDIR}/groups.json ${S}/control/config_files/${MACHINE}/groups.json
-        cp ${WORKDIR}/zones.json ${S}/control/config_files/${MACHINE}/zones.json
+MITCHELL_COMPAT_NAME = "com.ampere.Hardware.Chassis.Model.MtMitchell"
 
-        mkdir -p ${S}/monitor/config_files/${MACHINE}
-        cp ${WORKDIR}/monitor.json ${S}/monitor/config_files/${MACHINE}/config.json
-
-        mkdir -p ${S}/presence/config_files/${MACHINE}
-        cp ${WORKDIR}/presence.json ${S}/presence/config_files/${MACHINE}/config.json
-}
+CONTROL_CONFIGS = "events.json fans.json zones.json groups_2p.json groups_1p.json"
 
 do_install:append () {
         install -d ${D}${systemd_system_unitdir}
         install -m 0644 ${WORKDIR}/phosphor-fan-monitor@.service ${D}${systemd_system_unitdir}
         install -m 0644 ${WORKDIR}/phosphor-fan-control@.service ${D}${systemd_system_unitdir}
         install -m 0644 ${WORKDIR}/phosphor-fan-presence-tach@.service ${D}${systemd_system_unitdir}
+
+        # datadir = /usr/share
+        install -d ${D}${datadir}/phosphor-fan-presence/control/${MITCHELL_COMPAT_NAME}
+        install -d ${D}${datadir}/phosphor-fan-presence/monitor/${MITCHELL_COMPAT_NAME}
+        install -d ${D}${datadir}/phosphor-fan-presence/presence/${MITCHELL_COMPAT_NAME}
+
+        for CONTROL_CONFIG in ${CONTROL_CONFIGS}
+        do
+                install -m 0644 ${WORKDIR}/${CONTROL_CONFIG} \
+                        ${D}${datadir}/phosphor-fan-presence/control/${MITCHELL_COMPAT_NAME}
+        done
+
+        install -m 0644 ${WORKDIR}/groups_2p.json \
+                ${D}${datadir}/phosphor-fan-presence/control/${MITCHELL_COMPAT_NAME}/groups.json
+        install -m 0644 ${WORKDIR}/monitor.json \
+                ${D}${datadir}/phosphor-fan-presence/monitor/${MITCHELL_COMPAT_NAME}/config.json
+        install -m 0644 ${WORKDIR}/presence.json \
+                ${D}${datadir}/phosphor-fan-presence/presence/${MITCHELL_COMPAT_NAME}/config.json
 }
