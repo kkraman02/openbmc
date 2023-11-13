@@ -8,6 +8,7 @@ SRC_URI = " \
            file://ampere_add_redfishevent.sh \
            file://ampere_spi_util.sh \
            file://ampere_power_control_lock.sh \
+           file://utils-lib.sh \
           "
 
 RDEPENDS:${PN} = "bash"
@@ -17,4 +18,5 @@ do_install() {
     install -m 0755 ${WORKDIR}/ampere_add_redfishevent.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_spi_util.sh ${D}/${sbindir}/
     install -m 0755 ${WORKDIR}/ampere_power_control_lock.sh ${D}/${sbindir}/
+    install -m 0755 ${WORKDIR}/utils-lib.sh ${D}/${sbindir}/
 }
