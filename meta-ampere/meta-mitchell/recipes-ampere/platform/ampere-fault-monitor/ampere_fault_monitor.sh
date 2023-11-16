@@ -158,7 +158,6 @@ control_psu_fault_led() {
 
 check_overtemp_occured() {
     if [[ -f $overtemp_fault_flag ]]; then
-        echo "Over temperature occured, turn on fault LED"
         overtemp_occured="true"
     else
         overtemp_occured="false"
@@ -168,7 +167,6 @@ check_overtemp_occured() {
 
 check_gpio_fault() {
     if [[ -f $gpio_fault_flag ]]; then
-        echo "GPIO fault event(s) occured, turn on fault LED"
         gpio_fault="true"
     else
         gpio_fault="false"
@@ -177,7 +175,6 @@ check_gpio_fault() {
 
 check_RAS_UE_occured() {
 	if [[ -f $fault_RAS_UE_flag ]]; then
-		echo "RAS UE error occured, turn on fault LED"
 		RAS_UE_occured="true"
 	else
 		RAS_UE_occured="false"
