@@ -98,11 +98,11 @@
     ]
   },
   {
-    "name": "PSU Inlet Temps",
-    "service": "xyz.openbmc_project.HwmonTempSensor",
+    "name": "PSU Max Temps",
+    "service": "xyz.openbmc_project.PSUSensor",
     "members": [
-      "/xyz/openbmc_project/sensors/temperature/Psu0InletTemp2",
-      "/xyz/openbmc_project/sensors/temperature/Psu1InletTemp2"
+      "/xyz/openbmc_project/sensors/temperature/PSU0_TEMP",
+      "/xyz/openbmc_project/sensors/temperature/PSU1_TEMP"
     ]
   },
   {
