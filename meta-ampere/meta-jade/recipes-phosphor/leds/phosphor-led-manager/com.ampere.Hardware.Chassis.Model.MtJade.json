@@ -11,6 +11,18 @@
 			]
 		},
 		{
+			"group": "gpio_fault",
+			"members": [
+				{
+					"Name": "fault",
+					"Action": "On",
+					"DutyOn": 50,
+					"Period": 0,
+					"Priority": "Blink"
+				}
+			]
+		},
+		{
 			"group": "enclosure_identify",
 			"members": [
 				{
