@@ -14,17 +14,13 @@ if [ $# -lt 2 ]; then
 fi
 
 case "$1" in
-	1) GPIO_UARTx_MODE0="uart1-mode0"
-		GPIO_UARTx_MODE1="uart1-mode1"
+	1) GPIO_UARTx_MODE="uart1-mode1"
 	;;
-	2) GPIO_UARTx_MODE0="uart2-mode0"
-		GPIO_UARTx_MODE1="uart2-mode1"
+	2) GPIO_UARTx_MODE="uart2-mode1"
 	;;
-	3) GPIO_UARTx_MODE0="uart3-mode0"
-		GPIO_UARTx_MODE1="uart3-mode1"
+	3) GPIO_UARTx_MODE="uart3-mode1"
 	;;
-	4) GPIO_UARTx_MODE0="uart4-mode0"
-		GPIO_UARTx_MODE1="uart4-mode1"
+	4) GPIO_UARTx_MODE="uart4-mode1"
 	;;
 	*) echo "Invalid UART port selection"
 		exit 1
@@ -35,16 +31,14 @@ echo "Ampere UART MUX CTRL UART port $1 to mode $2"
 
 case "$2" in
 	# To HDR
-	1) gpioset $(gpiofind "$GPIO_UARTx_MODE0")=1
-		gpioset $(gpiofind "$GPIO_UARTx_MODE1")=0
-		exit 0
+	1) gpioset $(gpiofind "$GPIO_UARTx_MODE")=0
+	   exit 0
 	;;
 	# To BMC
-	2) gpioset $(gpiofind "$GPIO_UARTx_MODE0")=0
-		gpioset $(gpiofind "$GPIO_UARTx_MODE1")=1
-		exit 0
+	2) gpioset $(gpiofind "$GPIO_UARTx_MODE")=1
+	   exit 0
 	;;
 	*) echo "Invalid UART mode selection"
-		exit 1
+	   exit 1
 	;;
 esac

@@ -8,6 +8,7 @@ CONSOLE_CLIENT = "2200 2201 2202 2203 2204 2205"
 SRC_URI += " \
              ${@compose_list(d, 'CONSOLE_SERVER_CONF_FMT', 'OBMC_CONSOLE_TTYS')} \
              ${@compose_list(d, 'CONSOLE_CLIENT_CONF_FMT', 'CONSOLE_CLIENT')} \
+             file://ampere_uartmux_ctrl.sh \
              file://ampere_uart_console_setup.sh \
            "
 
@@ -16,6 +17,10 @@ SYSTEMD_SERVICE:${PN}:append = " \
                                 "
 
 do_install:append() {
+    # Script to switch host's uart muxes by GPIOs
+    install -d ${D}${sbindir}
+    install -m 0755 ${WORKDIR}/ampere_uartmux_ctrl.sh ${D}/${sbindir}
+
     # Script to set host's uart muxes to BMC
     install -m 0755 ${WORKDIR}/ampere_uart_console_setup.sh ${D}${sbindir}
 
