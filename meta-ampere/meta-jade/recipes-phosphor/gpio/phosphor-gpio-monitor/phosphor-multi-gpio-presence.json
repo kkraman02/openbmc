@@ -1,0 +1,14 @@
+[
+    {
+        "Name": "PSU0",
+        "LineName": "presence-ps0",
+        "ActiveLow": true,
+        "Inventory": "/system/powersupply/PowerSupply0"
+    },
+    {
+        "Name": "PSU1",
+        "LineName": "presence-ps1",
+        "ActiveLow": true,
+        "Inventory": "/system/powersupply/PowerSupply1"
+    }
+]
