@@ -25,6 +25,15 @@
                 [
                     "/xyz/openbmc_project/inventory/system/chassis"
                 ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan3_fault"
+                ]
             }
         ]
     },
@@ -53,6 +62,15 @@
                 "paths":
                 [
                     "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan4_fault"
                 ]
             }
         ]
@@ -83,6 +101,15 @@
                 [
                     "/xyz/openbmc_project/inventory/system/chassis"
                 ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan5_fault"
+                ]
             }
         ]
     },
@@ -111,6 +138,15 @@
                 "paths":
                 [
                     "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan6_fault"
                 ]
             }
         ]
@@ -141,6 +177,15 @@
                 [
                     "/xyz/openbmc_project/inventory/system/chassis"
                 ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan7_fault"
+                ]
             }
         ]
     },
@@ -169,6 +214,15 @@
                 "paths":
                 [
                     "/xyz/openbmc_project/inventory/system/chassis"
+                ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan8_fault"
                 ]
             }
         ]
