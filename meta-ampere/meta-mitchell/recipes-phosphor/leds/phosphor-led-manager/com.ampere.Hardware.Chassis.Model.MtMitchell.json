@@ -161,6 +161,23 @@
 			]
 		},
 		{
+			"group": "psu_fault",
+			"members": [
+				{
+					"Name": "led_psu_fault",
+					"Action": "On",
+					"DutyOn": 50,
+					"Period": 1000
+				},
+				{
+					"Name": "led_fault",
+					"Action": "On",
+					"DutyOn": 50,
+					"Period": 1000
+				}
+			]
+		},
+		{
 			"group": "ras_ue_fault",
 			"members": [
 				{
