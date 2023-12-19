@@ -6,7 +6,7 @@ SRC_URI += " \
             file://ampere_check_gpio_fault.sh \
            "
 
-do_install() {
+do_install:append() {
     install -d ${D}/${sbindir}
     install -m 755 ${WORKDIR}/ampere_check_gpio_fault.sh ${D}/${sbindir}/
 }
