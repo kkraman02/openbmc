@@ -181,6 +181,17 @@
 					"Period": 1000
 				}
 			]
+		},
+		{
+			"group": "gpio_fault",
+			"members": [
+				{
+					"Name": "led_fault",
+					"Action": "On",
+					"DutyOn": 50,
+					"Period": 1000
+				}
+			]
 		}
 	]
 }
