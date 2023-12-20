@@ -162,6 +162,15 @@
                 ]
             },
             {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan0_fault"
+                ]
+            },
+            {
                 "types":
                 {
                     "rType": "cooled_by",
@@ -188,6 +197,15 @@
                 [
                     "/xyz/openbmc_project/sensors/fan_tach/FAN1_F",
                     "/xyz/openbmc_project/sensors/fan_tach/FAN1_R"
+                ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan1_fault"
                 ]
             },
             {
@@ -220,6 +238,15 @@
                 ]
             },
             {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan2_fault"
+                ]
+            },
+            {
                 "types":
                 {
                     "rType": "cooled_by",
@@ -246,6 +273,15 @@
                 [
                     "/xyz/openbmc_project/sensors/fan_tach/FAN3_F",
                     "/xyz/openbmc_project/sensors/fan_tach/FAN3_R"
+                ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan3_fault"
                 ]
             },
             {
@@ -278,6 +314,15 @@
                 ]
             },
             {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan4_fault"
+                ]
+            },
+            {
                 "types":
                 {
                     "rType": "cooled_by",
@@ -304,6 +349,15 @@
                 [
                     "/xyz/openbmc_project/sensors/fan_tach/FAN5_F",
                     "/xyz/openbmc_project/sensors/fan_tach/FAN5_R"
+                ]
+            },
+            {
+                "types": {
+                    "rType": "fault_identified_by",
+                    "fType": "fault_identifying"
+                },
+                "paths": [
+                    "/xyz/openbmc_project/led/groups/fan5_fault"
                 ]
             },
             {
