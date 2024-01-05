@@ -2,14 +2,22 @@
 
 # shellcheck disable=SC2046
 
+inv_service="xyz.openbmc_project.Inventory.Manager"
+inv_obj_s0="/xyz/openbmc_project/inventory/system/chassis/motherboard/CPU_1"
+inv_obj_s1="/xyz/openbmc_project/inventory/system/chassis/motherboard/CPU_2"
+inv_inf="xyz.openbmc_project.Inventory.Item"
+inv_property="Present"
+
 function check_cpu_presence()
 {
 	# Check CPU presence, identify whether it is 1P or 2P system
-	s0_presence=$(gpioget $(gpiofind presence-cpu0))
-	s1_presence=$(gpioget $(gpiofind presence-cpu1))
-	if [ "$s0_presence" == "0" ] && [ "$s1_presence" == "0" ]; then
+	s0_presence=$(busctl get-property "$inv_service" "$inv_obj_s0" \
+		"$inv_inf" "$inv_property" | cut -d' ' -f2)
+	s1_presence=$(busctl get-property "$inv_service" "$inv_obj_s1" \
+		"$inv_inf" "$inv_property" | cut -d' ' -f2)
+	if [ "$s0_presence" == "true" ] && [ "$s1_presence" == "true" ]; then
 		ampere_add_redfishevent.sh OpenBMC.0.1.AmpereEvent.OK "Host firmware boots with 2 Processor"
-	elif [ "$s0_presence" == "0" ]; then
+	elif [ "$s0_presence" == "true" ]; then
 		ampere_add_redfishevent.sh OpenBMC.0.1.AmpereEvent.OK "Host firmware boots with 1 Processor"
 	else
 		ampere_add_redfishevent.sh OpenBMC.0.1.AmpereEvent.OK "No Processor is present"
