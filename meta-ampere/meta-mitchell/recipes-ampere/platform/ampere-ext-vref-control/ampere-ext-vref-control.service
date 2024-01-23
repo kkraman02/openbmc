@@ -1,13 +1,13 @@
 [Unit]
 Description=Ampere Platform Ext Vref Control Service
-Before=xyz.openbmc_project.EntityManager.service
+Before=obmc-chassis-poweron@0.target
 
 [Service]
-ExecStart=/usr/sbin/ampere_ext_vref_control.sh
+ExecCondition=/usr/sbin/ampere_ext_vref_control.sh check-hw
+ExecStartPre=/usr/sbin/ampere_ext_vref_control.sh assert-sys-reset
+ExecStart=/usr/sbin/ampere_ext_vref_control.sh control-vref
 SyslogIdentifier=ampere_ext_vref_control.sh
-RemainAfterExit=yes
-Type=oneshot
-SuccessExitStatus=193
+Type=simple
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=obmc-host-startmin@0.target
