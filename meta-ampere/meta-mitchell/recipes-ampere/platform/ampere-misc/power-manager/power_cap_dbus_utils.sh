@@ -144,7 +144,7 @@ function add_OEM_Action_Redfish_Log()
 {
     redfish_args=$1
 
-    logger-systemd --journald << EOF
+    logger --journald << EOF
 MESSAGE=
 PRIORITY=
 SEVERITY=

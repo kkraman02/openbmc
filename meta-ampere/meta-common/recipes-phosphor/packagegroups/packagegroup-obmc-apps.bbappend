@@ -13,7 +13,7 @@ RDEPENDS:${PN}-extras:append = " \
                                 phosphor-software-manager \
                                 obmc-phosphor-buttons-signals \
                                 obmc-phosphor-buttons-handler \
-                                logger-systemd \
+                                util-linux-logger \
                                 smbios-mdr \
                                 virtual-media \
                                "

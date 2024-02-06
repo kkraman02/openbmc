@@ -66,7 +66,7 @@ function add_OEM_Action_Redfish_Log()
     redfish_msg_id=$2
     redfish_args=$3
 
-    logger-systemd --journald << EOF
+    logger --journald << EOF
 MESSAGE=${redfish_msg}
 PRIORITY=2
 SEVERITY=
