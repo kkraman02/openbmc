@@ -16,6 +16,7 @@ RDEPENDS:${PN}-extras:append = " \
                                 util-linux-logger \
                                 smbios-mdr \
                                 virtual-media \
+                                nfs-utils-mount \
                                "
 
 RDEPENDS:${PN}-inventory:append = " \
