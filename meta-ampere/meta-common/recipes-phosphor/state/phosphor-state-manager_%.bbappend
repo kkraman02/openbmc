@@ -5,6 +5,7 @@ DEPENDS += "gpioplus libgpiod"
 SRC_URI += " \
               file://ampere-phosphor-reboot-host@.service \
               file://phosphor-discover-system-state-override.conf \
+              file://0001-Correct-the-value-of-CHASSIS_ON_FILE.patch \
 	   "
 
 EXTRA_OEMESON:append = " \

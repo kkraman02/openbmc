@@ -1,0 +1,39 @@
+From 8be7ec4510d7932dd9a8942cfa67cc05fe10866f Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Mon, 4 Mar 2024 15:08:37 +0700
+Subject: [PATCH] Correct the value of CHASSIS_ON_FILE
+
+Issue: When BMC turns on the host then reboot BMC. The BMC can not turn
+off/on or power cycle the host.
+
+Root cause: After commit [1], this repo is using std::format instead
+fmt::format. The value of CHASSIS_ON_FILE was not updated in that
+commit. It makes the /run/openbmc/chassis@0-on file is not removed when
+Chassis' Power state is On, therefore, the BMC can not turn on the host.
+
+Solution: This commit corrects the value of CHASSIS_ON_FILE.
+
+[1] https://github.com/openbmc/phosphor-state-manager/commit/78c066f6078704fd202c8a4b02fcf73091481ef1
+
+Change-Id: Ib741022774aac9a5cb3a4adc87bae8583df97ce2
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+---
+ meson.build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meson.build b/meson.build
+index 55f9b47..d3d04f6 100644
+--- a/meson.build
++++ b/meson.build
+@@ -81,7 +81,7 @@ conf.set_quoted(
+     'HOST_RUNNING_FILE', '/run/openbmc/host@{}-on')
+ 
+ conf.set_quoted(
+-    'CHASSIS_ON_FILE', '/run/openbmc/chassis@%d-on')
++    'CHASSIS_ON_FILE', '/run/openbmc/chassis@{}-on')
+ 
+ configure_file(output: 'config.h', configuration: conf)
+ 
+-- 
+2.25.1
+
