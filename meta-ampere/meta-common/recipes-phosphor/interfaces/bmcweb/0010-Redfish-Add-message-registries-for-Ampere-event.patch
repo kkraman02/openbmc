@@ -1,7 +1,7 @@
-From fb2671eadb709d39f6033649c63867cf98134b2d Mon Sep 17 00:00:00 2001
+From da2550f91aa5900cb266a9d06ec5446c703eebde Mon Sep 17 00:00:00 2001
 From: Hieu Huynh <hieuh@os.amperecomputing.com>
 Date: Tue, 14 Nov 2023 12:32:27 +0700
-Subject: [PATCH 10/14] Redfish: Add message registries for Ampere event
+Subject: [PATCH 10/13] Redfish: Add message registries for Ampere event
 
 Add Ampere defined registries for events that have not defined by
 OpenBMC.

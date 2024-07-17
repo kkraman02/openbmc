@@ -1,7 +1,7 @@
-From f91a052e6d0cef58547099c205b4e99ec42d083a Mon Sep 17 00:00:00 2001
+From c349f8b88b62764f0e75b5f069640565d82553f1 Mon Sep 17 00:00:00 2001
 From: Hieu Huynh <hieuh@os.amperecomputing.com>
 Date: Fri, 12 May 2023 10:20:18 +0700
-Subject: [PATCH 01/14] Re-enable vm-nbdproxy for Virtual Media
+Subject: [PATCH 01/13] Re-enable vm-nbdproxy for Virtual Media
 
 Community complains that no active support for virtual media and no
 backend codes were implemented. This make the vm-nbdproxy option becomes
@@ -17,7 +17,7 @@ Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
  2 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/meson.build b/meson.build
-index f4976c1f..4baf9d96 100644
+index 541fa5e8..aa755059 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -94,7 +94,7 @@ feature_map = {
@@ -30,7 +30,7 @@ index f4976c1f..4baf9d96 100644
  
  # Get the options status and build a project summary to show which flags are
 diff --git a/meson_options.txt b/meson_options.txt
-index fe5aa007..e1105b73 100644
+index 017c16bd..f7fdc2a6 100644
 --- a/meson_options.txt
 +++ b/meson_options.txt
 @@ -35,11 +35,11 @@ option(

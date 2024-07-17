@@ -1,7 +1,7 @@
-From 0ad29baada356d180c797020691fe6d3e9db43d8 Mon Sep 17 00:00:00 2001
+From 728c213869d0e5d7ebcd67f78672c82775a61175 Mon Sep 17 00:00:00 2001
 From: Claire Weinan <cweinan@google.com>
 Date: Fri, 12 May 2023 10:23:33 +0700
-Subject: [PATCH 03/14] LogService: Add CPER logs & crashdumps to FaultLog
+Subject: [PATCH 03/13] LogService: Add CPER logs & crashdumps to FaultLog
 
 Background: The fault log manager (in the phosphor-debug-collector
 module) now receives D-Bus signals to be notified when new CPER logs
@@ -60,10 +60,10 @@ Change-Id: I79c5e220f9c22312817a634d2e4e998dc02deced
  1 file changed, 91 insertions(+), 3 deletions(-)
 
 diff --git a/redfish-core/lib/log_services.hpp b/redfish-core/lib/log_services.hpp
-index 24f0251e..c2a62a98 100644
+index 5354f0a4..6aca4a28 100644
 --- a/redfish-core/lib/log_services.hpp
 +++ b/redfish-core/lib/log_services.hpp
-@@ -384,6 +384,7 @@ inline void parseDumpEntryFromDbusObject(
+@@ -333,6 +333,7 @@ inline void parseDumpEntryFromDbusObject(
      const dbus::utility::ManagedObjectType::value_type& object,
      std::string& dumpStatus, uint64_t& size, uint64_t& timestampUs,
      std::string& originatorId, log_entry::OriginatorTypes& originatorType,
@@ -71,7 +71,7 @@ index 24f0251e..c2a62a98 100644
      const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
  {
      for (const auto& interfaceMap : object.second)
-@@ -477,6 +478,45 @@ inline void parseDumpEntryFromDbusObject(
+@@ -426,6 +427,45 @@ inline void parseDumpEntryFromDbusObject(
                  }
              }
          }
@@ -117,7 +117,7 @@ index 24f0251e..c2a62a98 100644
      }
  }
  
-@@ -565,6 +605,8 @@ inline void
+@@ -516,6 +556,8 @@ inline void
              std::string originatorId;
              log_entry::OriginatorTypes originatorType =
                  log_entry::OriginatorTypes::Internal;
@@ -126,7 +126,7 @@ index 24f0251e..c2a62a98 100644
              nlohmann::json::object_t thisEntry;
  
              std::string entryID = object.first.filename();
-@@ -575,7 +617,7 @@ inline void
+@@ -526,7 +568,7 @@ inline void
  
              parseDumpEntryFromDbusObject(object, dumpStatus, size, timestampUs,
                                           originatorId, originatorType,
@@ -135,7 +135,7 @@ index 24f0251e..c2a62a98 100644
  
              if (dumpStatus !=
                      "xyz.openbmc_project.Common.Progress.OperationStatus.Completed" &&
-@@ -606,6 +648,27 @@ inline void
+@@ -557,6 +599,27 @@ inline void
                                                   "/attachment";
                  thisEntry["AdditionalDataSizeBytes"] = size;
              }
@@ -163,7 +163,7 @@ index 24f0251e..c2a62a98 100644
              else if (dumpType == "System")
              {
                  thisEntry["DiagnosticDataType"] = "OEM";
-@@ -662,10 +725,13 @@ inline void
+@@ -615,10 +678,13 @@ inline void
              std::string originatorId;
              log_entry::OriginatorTypes originatorType =
                  log_entry::OriginatorTypes::Internal;
@@ -178,7 +178,7 @@ index 24f0251e..c2a62a98 100644
  
              if (dumpStatus !=
                      "xyz.openbmc_project.Common.Progress.OperationStatus.Completed" &&
-@@ -700,6 +766,28 @@ inline void
+@@ -653,6 +719,28 @@ inline void
                      entriesPath + entryID + "/attachment";
                  asyncResp->res.jsonValue["AdditionalDataSizeBytes"] = size;
              }
@@ -207,7 +207,7 @@ index 24f0251e..c2a62a98 100644
              else if (dumpType == "System")
              {
                  asyncResp->res.jsonValue["DiagnosticDataType"] = "OEM";
-@@ -2777,7 +2865,7 @@ inline void
+@@ -2740,7 +2828,7 @@ inline void
      else if (dumpType == "FaultLog")
      {
          dumpPath = "/redfish/v1/Managers/bmc/LogServices/FaultLog";

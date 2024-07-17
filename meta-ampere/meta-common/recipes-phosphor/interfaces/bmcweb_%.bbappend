@@ -1,11 +1,11 @@
 FILESEXTRAPATHS:append := "${THISDIR}/${PN}:"
 
 EXTRA_OEMESON:append = " \
-     -Dbmcweb-logging=enabled \
+     -Dinsecure-tftp-update=disabled \
      -Dredfish-bmc-journal=enabled \
      -Dhttp-body-limit=65 \
-     -Dvm-nbdproxy=enabled \
      -Dredfish-dump-log=enabled \
+     -Dredfish-new-powersubsystem-thermalsubsystem=enabled \
      -Dredfish-allow-deprecated-power-thermal=disabled \
      "
 
@@ -23,7 +23,4 @@ SRC_URI += " \
             file://0011-Redfish-add-message-registries-for-power-limit-event.patch \
             file://0012-chassis-Methods-to-PhysicalSecurity-s-properties.patch \
             file://0013-Bypass-authentication-for-requests-sent-internally.patch \
-            file://0014-Support-remove-user-s-web-session.patch \
            "
-
-SRCREV = "e4588158c0ccc2b3b7af459b262e8eaefaf8f985"

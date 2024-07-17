@@ -1,7 +1,7 @@
-From 0832aecfd1ba12dac37ad8aaa3dbf7c8687b7e4f Mon Sep 17 00:00:00 2001
+From 149810adea3a815a56ecea8226c07fccb183f9eb Mon Sep 17 00:00:00 2001
 From: Chau Ly <chaul@amperecomputing.com>
 Date: Mon, 10 Jul 2023 16:34:42 +0700
-Subject: [PATCH 08/14] Disable patching to IPv4Address when DHCP is enabled
+Subject: [PATCH 08/13] Disable patching to IPv4Address when DHCP is enabled
 
 In accordance with schema http://redfish.dmtf.org/schemas/v1/
 IPAddresses.json#/definitions/IPv4Address, some items in "IPv4Address"
@@ -23,10 +23,10 @@ Signed-off-by: Chau Ly <chaul@amperecomputing.com>
  1 file changed, 25 insertions(+), 10 deletions(-)
 
 diff --git a/redfish-core/lib/ethernet.hpp b/redfish-core/lib/ethernet.hpp
-index 3f5f7d2e..e7b682af 100644
+index 91115e64..9729b023 100644
 --- a/redfish-core/lib/ethernet.hpp
 +++ b/redfish-core/lib/ethernet.hpp
-@@ -2118,18 +2118,33 @@ inline void requestEthernetInterfacesRoutes(App& app)
+@@ -2078,18 +2078,33 @@ inline void requestEthernetInterfacesRoutes(App& app)
              {
                  handleMACAddressPatch(ifaceId, *macAddress, asyncResp);
              }

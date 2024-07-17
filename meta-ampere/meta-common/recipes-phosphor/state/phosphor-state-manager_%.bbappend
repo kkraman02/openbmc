@@ -5,12 +5,12 @@ DEPENDS += "gpioplus libgpiod"
 SRC_URI += " \
               file://ampere-phosphor-reboot-host@.service \
               file://phosphor-discover-system-state-override.conf \
-              file://0001-Correct-the-value-of-CHASSIS_ON_FILE.patch \
 	   "
 
 EXTRA_OEMESON:append = " \
                          -Dhost-gpios=enabled \
                          -Dboot-count-max-allowed=1 \
+                         -Donly-run-apr-on-power-loss=true \
                        "
 
 FILES:${PN} += "${systemd_system_unitdir}/*"

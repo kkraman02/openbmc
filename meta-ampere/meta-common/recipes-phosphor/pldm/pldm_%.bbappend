@@ -5,7 +5,7 @@ RDEPENDS:${PN} += "bash"
 SRC_URI = "git://github.com/ampere-openbmc/pldm;protocol=https;branch=ampere \
            file://host_eid \
           "
-SRCREV = "007dab6e2d927485532c8dc0966401cc204e083e"
+SRCREV = "1155e62840a3ceb45b29f1def236f4ebcf574803"
 
 SYSTEMD_SERVICE:${PN}:remove = " \
                                 pldmSoftPowerOff.service \

@@ -1,0 +1,12 @@
+[
+  {
+    "id" : 0,
+    "busIdx" : 0,
+    "addrIdx" : 80
+  },
+  {
+    "id" : 1,
+    "busIdx" : 6,
+    "addrIdx" : 80
+  }
+]

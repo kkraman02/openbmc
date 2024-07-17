@@ -1,0 +1,60 @@
+From 95985448b619fe151519600af402cfa6190a5f12 Mon Sep 17 00:00:00 2001
+From: Thang Tran <thuutran@amperecomputing.com>
+Date: Mon, 18 Dec 2023 11:19:28 +0700
+Subject: [PATCH] dcmi: correct return data of Get Configuration Parameter
+ command
+
+When users call "ipmitool dcmi get_conf_param" command, ipmitool show
+paramters are disabled or 0.
+```
+    DHCP Discovery method    :
+        Management Controller ID String is disabled
+        Vendor class identifier DCMI IANA and Vendor class-specific \
+                                        Informationa are disabled
+    Initial timeout interval    : 0 seconds
+    Server contact timeout interval    : 0 seconds
+    Server contact retry interval    : 0 seconds
+```
+
+Those information is incorrect. The root cause of this issue due to the
+Get DCMI Configuration Command only return success value w/o parameter
+data.
+
+This commit adds parameter data to the response message.
+
+Tested:
+    1. Get DCMI Configuration Parameter
+       $ipmitool dcmi get_conf_param
+    2. Data show as below
+        ```
+        DHCP Discovery method    :
+            Management Controller ID String is enabled
+            Vendor class identifier DCMI IANA and Vendor class-specific
+                                            Informationa are disabled
+        Initial timeout interval    : 4 seconds
+        Server contact timeout interval    : 120 seconds
+        Server contact retry interval    : 64 seconds
+        ```
+
+Change-Id: I0089993062c3c30792786b8e7f0f39f9507f93c3
+Signed-off-by: Thang Tran <thuutran@amperecomputing.com>
+---
+ dcmihandler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dcmihandler.cpp b/dcmihandler.cpp
+index da6fced..0c0f2bb 100644
+--- a/dcmihandler.cpp
++++ b/dcmihandler.cpp
+@@ -963,7 +963,7 @@ ipmi::RspType<ipmi::message::Payload> getDCMIConfParams(ipmi::Context::ptr& ctx,
+             return ipmi::responseInvalidFieldRequest();
+     }
+ 
+-    return ipmi::responseSuccess();
++    return ipmi::responseSuccess(payload);
+ }
+ 
+ static std::optional<uint16_t> readPower(ipmi::Context::ptr& ctx)
+-- 
+2.25.1
+

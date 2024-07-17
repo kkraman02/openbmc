@@ -13,10 +13,9 @@ RDEPENDS:${PN}-extras:append = " \
                                 phosphor-software-manager \
                                 obmc-phosphor-buttons-signals \
                                 obmc-phosphor-buttons-handler \
-                                util-linux-logger \
+                                logger-systemd \
                                 smbios-mdr \
                                 virtual-media \
-                                nfs-utils-mount \
                                "
 
 RDEPENDS:${PN}-inventory:append = " \

@@ -1,7 +1,7 @@
-From 768c6597fed587d8623dde9895ba6602e1ca71d2 Mon Sep 17 00:00:00 2001
+From e25c8145323cffd7783d9c93ec10533c6fa453ec Mon Sep 17 00:00:00 2001
 From: arunthomas <arunthomasb@ami.com>
 Date: Thu, 21 Sep 2023 13:30:03 +0530
-Subject: [PATCH 13/14] Bypass authentication for requests sent internally
+Subject: [PATCH 13/13] Bypass authentication for requests sent internally
 
 PATCH request containing If-Match header with the value of etag causes the BMCWEB to crash. To compute the etag, a new GET request for the same URI is internally generated. Same req.session is assigned to the new request. The new req gets authenticated and when privileges are assigned in  populateUserInfo() BMCWEB will get crashed when req.session members are accessed.
 

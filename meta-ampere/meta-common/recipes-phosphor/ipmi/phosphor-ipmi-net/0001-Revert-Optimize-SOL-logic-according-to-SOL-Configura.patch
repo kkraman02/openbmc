@@ -1,0 +1,36 @@
+From 3b1e6306c5e9ce79b5bbc809eac0d37038ee297d Mon Sep 17 00:00:00 2001
+From: "Thang Q. Nguyen" <thang@os.amperecomputing.com>
+Date: Thu, 12 Oct 2023 15:15:28 +0700
+Subject: [PATCH 1/2] Revert "Optimize SOL logic according to SOL Configuration
+ Parameters definition"
+
+This reverts commit 15535143347bc37bbd0f9bd3b473d500584eb7ae to fix
+A3SR-21037 "[AC03][OpenBMC][2.11.001] SOL Terminating session during CPU
+reboot"
+---
+ sol/sol_context.cpp | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/sol/sol_context.cpp b/sol/sol_context.cpp
+index 7bae1cb..08a717a 100644
+--- a/sol/sol_context.cpp
++++ b/sol/sol_context.cpp
+@@ -40,15 +40,8 @@ void Context::enableAccumulateTimer(bool enable)
+ {
+     // fetch the timeout from the SOL manager
+     std::chrono::microseconds interval = sol::Manager::get().accumulateInterval;
+-
+     if (enable)
+     {
+-        auto bufferSize = sol::Manager::get().dataBuffer.size();
+-        if (bufferSize > sendThreshold)
+-        {
+-            charAccTimerHandler();
+-            return;
+-        }
+         accumulateTimer.expires_after(interval);
+         std::weak_ptr<Context> weakRef = weak_from_this();
+         accumulateTimer.async_wait(
+-- 
+2.34.1
+

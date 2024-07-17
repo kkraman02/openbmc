@@ -1,7 +1,7 @@
-From e67c5b660dd991fdda157e47aa693f3bbb0be087 Mon Sep 17 00:00:00 2001
+From 6ded4fbbd49ee7a8b307452eca96a5f87cd051b8 Mon Sep 17 00:00:00 2001
 From: Chau Ly <chaul@amperecomputing.com>
 Date: Wed, 19 Jul 2023 08:42:18 +0000
-Subject: [PATCH 12/14] chassis: Methods to PhysicalSecurity's properties
+Subject: [PATCH 12/13] chassis: Methods to PhysicalSecurity's properties
 
 This commit handles GET method to IntrusionSensorReArm property under
 PhysicalSecurity. Moreover, Redfish Data Model Specification says about
@@ -82,7 +82,7 @@ Signed-off-by: Chau Ly <chaul@amperecomputing.com>
  1 file changed, 239 insertions(+), 30 deletions(-)
 
 diff --git a/redfish-core/lib/chassis.hpp b/redfish-core/lib/chassis.hpp
-index e827f03d..80e6bfc1 100644
+index 72f5011d..cb3a2e93 100644
 --- a/redfish-core/lib/chassis.hpp
 +++ b/redfish-core/lib/chassis.hpp
 @@ -19,6 +19,7 @@
@@ -287,7 +287,7 @@ index e827f03d..80e6bfc1 100644
  }
  
  inline void handleChassisCollectionGet(
-@@ -659,6 +770,82 @@ inline void
+@@ -640,6 +751,82 @@ inline void
          std::bind_front(handlePhysicalSecurityGetSubTree, asyncResp));
  }
  
@@ -370,7 +370,7 @@ index e827f03d..80e6bfc1 100644
  inline void
      handleChassisPatch(App& app, const crow::Request& req,
                         const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
-@@ -670,6 +857,7 @@ inline void
+@@ -651,6 +838,7 @@ inline void
      }
      std::optional<bool> locationIndicatorActive;
      std::optional<std::string> indicatorLed;
@@ -378,7 +378,7 @@ index e827f03d..80e6bfc1 100644
  
      if (param.empty())
      {
-@@ -678,11 +866,34 @@ inline void
+@@ -659,11 +847,34 @@ inline void
  
      if (!json_util::readJsonPatch(
              req, asyncResp->res, "LocationIndicatorActive",
@@ -414,7 +414,7 @@ index e827f03d..80e6bfc1 100644
      // TODO (Gunnar): Remove IndicatorLED after enough time has passed
      if (!locationIndicatorActive && !indicatorLed)
      {
-@@ -699,8 +910,6 @@ inline void
+@@ -680,8 +891,6 @@ inline void
          "xyz.openbmc_project.Inventory.Item.Board",
          "xyz.openbmc_project.Inventory.Item.Chassis"};
  

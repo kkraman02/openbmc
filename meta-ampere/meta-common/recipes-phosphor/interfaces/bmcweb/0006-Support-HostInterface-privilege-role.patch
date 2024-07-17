@@ -1,7 +1,7 @@
-From 2ad5840a898858f227c9ae7a651ec7f0fa72ee54 Mon Sep 17 00:00:00 2001
+From 55761cebc85b5d0de5d4d124cafe8541315879ec Mon Sep 17 00:00:00 2001
 From: Hieu Huynh <hieuh@os.amperecomputing.com>
 Date: Fri, 12 May 2023 10:31:24 +0700
-Subject: [PATCH 06/14] Support HostInterface privilege role
+Subject: [PATCH 06/13] Support HostInterface privilege role
 
 This commit supports the CredentialBootstrappingRole property inside
 HostInterface schema. This property shall contain a link to a resource

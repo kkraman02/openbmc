@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: GPL-2.0+
+
+partitions {
+	compatible = "fixed-partitions";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	u-boot@0 {
+		reg = <0x0 0x60000>;
+		label = "u-boot";
+	};
+
+	u-boot-env@60000 {
+		reg = <0x60000 0x20000>;
+		label = "u-boot-env";
+	};
+
+	kernel@100000 {
+		reg = <0x100000 0x430000>;
+		label = "kernel";
+	};
+
+	rofs@530000 {
+		reg = <0x530000 0x1900000>;
+		label = "rofs";
+	};
+
+	rwfs@1e30000 {
+		reg = <0x1e30000 0x1d0000>;
+		label = "rwfs";
+	};
+};

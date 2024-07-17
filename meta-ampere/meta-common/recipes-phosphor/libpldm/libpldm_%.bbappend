@@ -1,3 +1,3 @@
 PACKAGECONFIG = "abi-development"
 
-SRCREV = "dc7d3b5b95f430962424491ba7e38f2c331bbebc"
+SRCREV = "cc45aed7808d0a04f6ecc120b1f28e1b6ada0ac4"

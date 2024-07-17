@@ -1,7 +1,7 @@
-From 9c172ee9b9a8d56090890d35ca306a565e6d0734 Mon Sep 17 00:00:00 2001
+From 1592bb337ffa5cdb8686d0c186daac39a977bd68 Mon Sep 17 00:00:00 2001
 From: Hieu Huynh <hieuh@os.amperecomputing.com>
-Date: Fri, 1 Mar 2024 04:32:39 +0000
-Subject: [PATCH] support BootProgress OemLastState
+Date: Fri, 12 May 2023 10:22:29 +0700
+Subject: [PATCH 02/13] support BootProgress OemLastState
 
 Support setting BootProgress OemLastState from the latest PostCodes entry.
 This commit also supports to set LastState to Oem when dbus ProgressStages is Oem.
@@ -12,10 +12,10 @@ Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
  1 file changed, 86 insertions(+)
 
 diff --git a/redfish-core/lib/systems.hpp b/redfish-core/lib/systems.hpp
-index 2d62763e..0deaffb6 100644
+index e044c670..b3672ce5 100644
 --- a/redfish-core/lib/systems.hpp
 +++ b/redfish-core/lib/systems.hpp
-@@ -44,6 +44,7 @@
+@@ -43,6 +43,7 @@
  
  #include <array>
  #include <string_view>
@@ -23,7 +23,7 @@ index 2d62763e..0deaffb6 100644
  #include <variant>
  
  namespace redfish
-@@ -819,6 +820,12 @@ inline std::string dbusToRfBootProgress(const std::string& dbusBootProgress)
+@@ -818,6 +819,12 @@ inline std::string dbusToRfBootProgress(const std::string& dbusBootProgress)
      {
          rfBpLastState = "OSRunning";
      }
@@ -36,7 +36,7 @@ index 2d62763e..0deaffb6 100644
      else
      {
          BMCWEB_LOG_DEBUG("Unsupported D-Bus BootProgress {}", dbusBootProgress);
-@@ -915,6 +922,84 @@ inline void getBootProgress(const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
+@@ -914,6 +921,84 @@ inline void getBootProgress(const std::shared_ptr<bmcweb::AsyncResp>& asyncResp)
      });
  }
  
@@ -121,14 +121,14 @@ index 2d62763e..0deaffb6 100644
  /**
   * @brief Retrieves boot progress Last Update of the system
   *
-@@ -3376,6 +3461,7 @@ inline void
+@@ -3338,6 +3423,7 @@ inline void
      getHostState(asyncResp);
      getBootProperties(asyncResp);
      getBootProgress(asyncResp);
 +    getBootProgressOemLastState(asyncResp);
      getBootProgressLastStateTime(asyncResp);
-     pcie_util::getPCIeDeviceList(asyncResp,
-                                  nlohmann::json::json_pointer("/PCIeDevices"));
+     pcie_util::getPCIeDeviceList(asyncResp, "PCIeDevices");
+     getHostWatchdogTimer(asyncResp);
 -- 
-2.25.1
+2.34.1
 

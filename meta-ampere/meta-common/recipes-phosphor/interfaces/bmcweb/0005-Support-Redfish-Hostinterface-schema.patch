@@ -1,7 +1,7 @@
-From 4808a36ec31dda244cb7eeccdc2b75dfc4050bc3 Mon Sep 17 00:00:00 2001
+From a8f8b4d48095674e332b034040301747cfa8f940 Mon Sep 17 00:00:00 2001
 From: Hieu Huynh <hieuh@os.amperecomputing.com>
 Date: Wed, 6 Dec 2023 14:43:03 +0700
-Subject: [PATCH 05/14] Support Redfish Hostinterface schema
+Subject: [PATCH 05/13] Support Redfish Hostinterface schema
 
 Support the HostInterface schema as defined in the DSP0268_2021.2
 Redfish Schema Supplement.pdf and satisfy requirements specified at
@@ -17,7 +17,7 @@ Signed-off-by: Hieu Huynh <hieuh@os.amperecomputing.com>
  create mode 100644 redfish-core/lib/host_interface.hpp
 
 diff --git a/redfish-core/include/redfish.hpp b/redfish-core/include/redfish.hpp
-index f8f26099..45b19813 100644
+index 383887f7..4423e77c 100644
 --- a/redfish-core/include/redfish.hpp
 +++ b/redfish-core/include/redfish.hpp
 @@ -25,6 +25,7 @@
@@ -28,7 +28,7 @@ index f8f26099..45b19813 100644
  #include "fabric_adapters.hpp"
  #include "fan.hpp"
  #include "hypervisor_system.hpp"
-@@ -87,6 +88,8 @@ class RedfishService
+@@ -86,6 +87,8 @@ class RedfishService
          requestRoutesNetworkProtocol(app);
          requestRoutesSession(app);
          requestEthernetInterfacesRoutes(app);
@@ -230,10 +230,10 @@ index 00000000..fe3c6c0d
 +
 +} // namespace redfish
 diff --git a/redfish-core/lib/managers.hpp b/redfish-core/lib/managers.hpp
-index c61132f2..749256d6 100644
+index 38add8be..8f8a5126 100644
 --- a/redfish-core/lib/managers.hpp
 +++ b/redfish-core/lib/managers.hpp
-@@ -1932,6 +1932,8 @@ inline void requestRoutesManager(App& app)
+@@ -1933,6 +1933,8 @@ inline void requestRoutesManager(App& app)
              "/redfish/v1/Managers/bmc/NetworkProtocol";
          asyncResp->res.jsonValue["EthernetInterfaces"]["@odata.id"] =
              "/redfish/v1/Managers/bmc/EthernetInterfaces";
@@ -243,7 +243,7 @@ index c61132f2..749256d6 100644
  #ifdef BMCWEB_ENABLE_VM_NBDPROXY
          asyncResp->res.jsonValue["VirtualMedia"]["@odata.id"] =
 diff --git a/scripts/update_schemas.py b/scripts/update_schemas.py
-index 3d8fb038..ecde3ec7 100755
+index c77144d1..b2ad594e 100755
 --- a/scripts/update_schemas.py
 +++ b/scripts/update_schemas.py
 @@ -58,6 +58,8 @@ include_list = [

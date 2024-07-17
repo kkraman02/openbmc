@@ -1,7 +1,7 @@
-From d587f163086747f4fc17aa263bb9eddf5753f4d0 Mon Sep 17 00:00:00 2001
+From ffecf4013cac93aef601337b38a55a63f2dc306d Mon Sep 17 00:00:00 2001
 From: Thang Tran <thuutran@amperecomputing.com>
 Date: Tue, 14 Nov 2023 12:33:35 +0700
-Subject: [PATCH 11/14] Redfish: add message registries for power limit events
+Subject: [PATCH 11/13] Redfish: add message registries for power limit events
 
 Add message registries to handle total power consumption events:
 - Total power consumption exceeds the power limit.
